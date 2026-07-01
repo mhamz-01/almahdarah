@@ -1,26 +1,132 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #ece7dc;
+  --surface: #fbf9f3;
+  --surface-2: #e4decf;
+  --mint: #dff2ef;
+  --ink: #2b2a26;
+  --fg: #2b2a26;
+  --text: #4c4942;
+  --muted: #827d72;
+  --border: rgba(43, 42, 38, 0.12);
+  --border-strong: rgba(43, 42, 38, 0.22);
+  --primary: #1182a3;
+  --primary-2: #2b7977;
+  --navy: #25345d;
+  --gold: #f2c953;
+  --green: #3e9e54;
+  --shadow-sm:
+    0 1px 2px rgba(43, 42, 38, 0.05), 0 8px 22px rgba(43, 42, 38, 0.06);
+  --shadow-md: 0 14px 38px rgba(43, 42, 38, 0.1);
+  --shadow-lg: 0 30px 64px rgba(43, 42, 38, 0.16);
+  --pattern: rgba(43, 42, 38, 0.05);
+  --logo-filter: none;
+}
+
+[data-theme="dark"] {
+  --bg: #15140f;
+  --surface: #211e18;
+  --surface-2: #1b1813;
+  --mint: #15302e;
+  --ink: #f3efe6;
+  --fg: #f3efe6;
+  --text: #c9c3b5;
+  --muted: #948d7f;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --primary: #3ba6c6;
+  --primary-2: #43afa5;
+  --navy: #25345d;
+  --gold: #f4d06b;
+  --green: #56bc6c;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 14px 38px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 30px 64px rgba(0, 0, 0, 0.6);
+  --pattern: rgba(243, 239, 230, 0.06);
+  --logo-filter: invert(1) brightness(1.6);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-mint: var(--mint);
+  --color-ink: var(--ink);
+  --color-fg: var(--fg);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-2: var(--primary-2);
+  --color-navy: var(--navy);
+  --color-gold: var(--gold);
+  --color-green: var(--green);
+
+  --font-display: var(--font-archivo-black);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-spectral);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+::selection {
+  background: var(--gold);
+  color: #2b2a26;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.bg-pattern {
+  background-image:
+    repeating-linear-gradient(45deg, var(--pattern) 0 1px, transparent 1px 96px),
+    repeating-linear-gradient(-45deg, var(--pattern) 0 1px, transparent 1px 96px);
+}
+
+.placeholder-avatar {
+  background-image:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.18) 0 7px, transparent 7px 14px),
+    linear-gradient(135deg, var(--pg-from), var(--pg-to));
+}
+
+.placeholder-cover {
+  background-image:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0 14px, transparent 14px 28px),
+    linear-gradient(135deg, var(--pg-from), var(--pg-to));
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
