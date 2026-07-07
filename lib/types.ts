@@ -26,6 +26,7 @@ export interface Testimonial {
 }
 
 export interface MentoredCourse {
+  slug: string;
   index: string;
   category: string;
   title: string;
@@ -36,24 +37,158 @@ export interface MentoredCourse {
 }
 
 export interface FreeCourse {
+  slug: string;
   glyph: string;
   title: string;
   description: string;
   duration: string;
+  schedule: string;
   accent: AccentToken;
 }
 
 export interface FacultyMember {
+  slug: string;
   name: string;
   subject: string;
   bio: string;
   accent: AccentToken;
 }
 
+export interface FacultySpecialty {
+  icon: string;
+  title: string;
+  text: string;
+}
+
+export interface FacultyTimelineEntry {
+  year: string;
+  title: string;
+  text: string;
+}
+
+export type FacultyAvailability = "Accepting new students" | "Waitlist only" | "Fully booked";
+
+export interface BookingFormState {
+  name: string;
+  phone: string;
+  email: string;
+  country: string;
+  ageGroup: string;
+  course: string;
+  notes: string;
+}
+
+export interface JoinCommunityFormState {
+  name: string;
+  age: string;
+  contact: string;
+  message: string;
+  courseTitle: string;
+}
+
+export interface FacultyProfile {
+  slug: string;
+  name: string;
+  role: string;
+  department: string;
+  bio: string;
+  availability: FacultyAvailability;
+  statYears: string;
+  statStudents: string;
+  statRating: string;
+  credentials: string[];
+  specialties: FacultySpecialty[];
+  timeline: FacultyTimelineEntry[];
+  philosophyQuote: string;
+  courseSlugs: string[];
+  accent: AccentToken;
+}
+
 export interface BlogPost {
+  slug: string;
   tag: string;
   title: string;
   excerpt: string;
   readTime: string;
   accent: AccentToken;
+}
+
+export type ArticleBlock =
+  | { type: "p"; text: string }
+  | { type: "h2"; id: string; text: string }
+  | { type: "quote"; text: string }
+  | { type: "list"; items: string[] };
+
+export interface ArticleDetail {
+  slug: string;
+  tag: string;
+  title: string;
+  subtitle: string;
+  authorName: string;
+  authorRole: string;
+  date: string;
+  readTime: string;
+  coverGlyph: string;
+  accent: AccentToken;
+  body: ArticleBlock[];
+  closingNote: string;
+  authorBio: string;
+}
+
+export interface CourseModule {
+  title: string;
+  meta: string;
+  lessons: string[];
+}
+
+export interface CourseFaq {
+  q: string;
+  a: string;
+}
+
+export interface CourseLogisticsRow {
+  label: string;
+  value: string;
+}
+
+export interface CourseStep {
+  num: string;
+  title: string;
+  text: string;
+}
+
+export interface CourseTestimonial {
+  quote: string;
+  name: string;
+  role: string;
+  accent: AccentToken;
+}
+
+export interface CourseDetail {
+  slug: string;
+  type: "paid" | "free";
+  category: string;
+  title: string;
+  subtitle: string;
+  rating: string;
+  studentsLine: string;
+  levelLine: string;
+  teacherName: string;
+  teacherRole: string;
+  teacherBio: string;
+  teacherQuote: string;
+  durationLine: string;
+  statStudents: string;
+  statCountries: string;
+  statCompletion: string;
+  accent: AccentToken;
+  outcomes: string[];
+  modules: CourseModule[];
+  logistics: CourseLogisticsRow[];
+  audience: string[];
+  testimonials: CourseTestimonial[];
+  ctaHeadline: string;
+  ctaSub: string;
+  steps: CourseStep[];
+  faqs: CourseFaq[];
 }

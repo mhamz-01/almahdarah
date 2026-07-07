@@ -1,9 +1,10 @@
+import Link from "next/link";
 import type { MentoredCourse } from "@/lib/types";
-import { Button } from "@/components/ui/button";
 import { DiamondMark } from "@/components/ui/diamond-mark";
 import { accentBg, accentBorder, accentBorderSoft, accentSoftBg, accentText } from "@/lib/accent";
 
 export function CourseCard({
+  slug,
   index,
   category,
   title,
@@ -13,8 +14,9 @@ export function CourseCard({
   popular,
 }: MentoredCourse) {
   return (
-    <div
-      className={`relative flex flex-col overflow-hidden rounded-3xl bg-surface shadow-[var(--shadow-sm)] transition-transform duration-200 hover:-translate-y-1.5 ${
+    <Link
+      href={`/courses/${slug}`}
+      className={`group relative flex flex-col overflow-hidden rounded-3xl bg-surface shadow-[var(--shadow-sm)] transition-transform duration-200 hover:-translate-y-1.5 ${
         popular ? `border-[1.5px] ${accentBorderSoft[accent]}` : "border border-border"
       }`}
     >
@@ -65,11 +67,14 @@ export function CourseCard({
             <div className="text-[13px] font-bold text-ink">Free demo class</div>
             <div className="text-[11.5px] text-muted">then off-platform</div>
           </div>
-          <Button href="#demo" size="md" withArrow>
-            Book demo
-          </Button>
+          <span className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-[18px] text-[13.5px] font-bold whitespace-nowrap text-white shadow-[0_12px_26px_-6px_var(--primary)] transition-all duration-200 group-hover:brightness-[1.07]">
+            View course
+            <span className="inline-block text-[1.15em] leading-none transition-transform duration-200 group-hover:translate-x-1">
+              →
+            </span>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

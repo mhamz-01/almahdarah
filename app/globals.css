@@ -94,15 +94,164 @@ body {
   color: #2b2a26;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 .bg-pattern {
   background-image:
     repeating-linear-gradient(45deg, var(--pattern) 0 1px, transparent 1px 96px),
     repeating-linear-gradient(-45deg, var(--pattern) 0 1px, transparent 1px 96px);
+  background-position: 0 0;
+}
+
+.animate-marquee {
+  animation: marquee 24s linear infinite;
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-blob {
+  animation: blob-float 16s ease-in-out infinite;
+}
+
+.animate-blob-delay {
+  animation: blob-float 18s ease-in-out infinite;
+  animation-delay: -9s;
+}
+
+@keyframes blob-float {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(26px, -20px) scale(1.08);
+  }
+  66% {
+    transform: translate(-20px, 16px) scale(0.94);
+  }
+}
+
+.select-content {
+  animation: select-in 150ms ease-out;
+  transform-origin: var(--radix-select-content-transform-origin);
+}
+
+.select-content[data-state="closed"] {
+  animation: select-out 120ms ease-in;
+}
+
+@keyframes select-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes select-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98) translateY(-4px);
+  }
+}
+
+.dialog-overlay {
+  animation: dialog-overlay-in 180ms ease-out;
+}
+
+.dialog-overlay[data-state="closed"] {
+  animation: dialog-overlay-out 150ms ease-in;
+}
+
+.dialog-content {
+  animation: dialog-content-in 180ms ease-out;
+}
+
+.dialog-content[data-state="closed"] {
+  animation: dialog-content-out 150ms ease-in;
+}
+
+@keyframes dialog-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-content-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes dialog-content-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-float,
+  .animate-ping,
+  .animate-blob,
+  .animate-blob-delay,
+  .select-content,
+  .dialog-overlay,
+  .dialog-content {
+    animation: none;
+  }
 }
 
 .placeholder-avatar {

@@ -17,7 +17,7 @@ export function Header() {
             priority
             className="h-[42px] w-auto [filter:var(--logo-filter)]"
           />
-          <span className="flex flex-col leading-[1.02]">
+          <span className="hidden flex-col leading-[1.02] sm:flex">
             <span className="font-display text-[17px] tracking-[0.01em] text-ink">
               AL-MAHDRAH
             </span>
@@ -42,7 +42,7 @@ export function Header() {
         <div className="flex items-center gap-[11px]">
           <ThemeToggle />
           <div className="hidden lg:block">
-            <Button href="#demo" size="sm">
+            <Button href="/book-a-demo" size="sm">
               Book a free demo
             </Button>
           </div>

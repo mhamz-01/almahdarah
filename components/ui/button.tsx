@@ -1,5 +1,6 @@
 import Link from "next/link";
-import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
+import { forwardRef } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, Ref } from "react";
 
 type ButtonVariant = "primary" | "gold" | "outline" | "invert";
 type ButtonSize = "sm" | "md" | "lg";
@@ -41,37 +42,38 @@ type ButtonAsButton = BaseProps &
 type ButtonProps = ButtonAsLink | ButtonAsButton;
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-2 rounded-full font-bold whitespace-nowrap transition-all duration-200";
+  "group inline-flex items-center justify-center gap-2 rounded-full font-bold whitespace-nowrap transition-all duration-200";
 
-export function Button({
-  variant = "primary",
-  size = "md",
-  withArrow = false,
-  className = "",
-  children,
-  ...props
-}: ButtonProps) {
-  const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(
+  ({ variant = "primary", size = "md", withArrow = false, className = "", children, ...props }, ref) => {
+    const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 
-  const content = (
-    <>
-      {children}
-      {withArrow && <span className="text-[1.15em] leading-none">→</span>}
-    </>
-  );
-
-  if (props.href) {
-    const { href, ...anchorProps } = props as ButtonAsLink;
-    return (
-      <Link href={href} className={classes} {...anchorProps}>
-        {content}
-      </Link>
+    const content = (
+      <>
+        {children}
+        {withArrow && (
+          <span className="inline-block text-[1.15em] leading-none transition-transform duration-200 group-hover:translate-x-1">
+            →
+          </span>
+        )}
+      </>
     );
-  }
 
-  return (
-    <button className={classes} {...(props as ButtonAsButton)}>
-      {content}
-    </button>
-  );
-}
+    if (props.href) {
+      const { href, ...anchorProps } = props as ButtonAsLink;
+      return (
+        <Link ref={ref as Ref<HTMLAnchorElement>} href={href} className={classes} {...anchorProps}>
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button ref={ref as Ref<HTMLButtonElement>} className={classes} {...(props as ButtonAsButton)}>
+        {content}
+      </button>
+    );
+  },
+);
+
+Button.displayName = "Button";
