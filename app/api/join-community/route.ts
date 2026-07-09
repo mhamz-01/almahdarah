@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { JoinCommunityFormState } from "@/lib/types";
+import { insertLead } from "@/lib/supabase";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as Partial<JoinCommunityFormState>;
@@ -8,9 +9,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Missing required fields" }, { status: 400 });
   }
 
-  // TODO: persist to a real database. Dummy call shown below, commented out for now.
-  // await db.communityRequests.create({ data: body });
-  console.log("New community join request:", body);
+  try {
+    await insertLead({
+      source: "free_course",
+      name: body.name.trim(),
+      phone: body.contact.trim(),
+      details: body,
+    });
+  } catch (error) {
+    console.error("Failed to save community join request:", error);
+    return NextResponse.json({ ok: false, error: "Failed to save request" }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true });
 }

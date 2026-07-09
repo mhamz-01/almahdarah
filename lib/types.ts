@@ -86,6 +86,40 @@ export interface JoinCommunityFormState {
   courseTitle: string;
 }
 
+export type ReviewerType = "parent" | "student";
+
+export interface ReviewFormState {
+  reviewerType: ReviewerType | "";
+  name: string;
+  country: string;
+  city: string;
+  rating: number;
+  reviewText: string;
+}
+
+export type LeadSource = "demo_booking" | "free_course";
+
+export interface LeadRow {
+  id: string;
+  created_at: string;
+  source: LeadSource;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  details: Record<string, unknown>;
+}
+
+export interface ReviewRow {
+  id: string;
+  created_at: string;
+  reviewer_type: ReviewerType;
+  name: string;
+  country: string;
+  city: string;
+  rating: number;
+  review_text: string;
+}
+
 export interface FacultyProfile {
   slug: string;
   name: string;
