@@ -5,17 +5,18 @@ export function getCourseCopy(type: CourseDetail["type"]) {
 
   return {
     isPaid,
-    badgeLabel: isPaid ? "Mentored · Live 1:1" : "Free · Self-paced",
-    heroCtaLabel: isPaid ? "Book a free demo" : "Start free course",
-    heroCtaSecondary: isPaid ? "See curriculum" : "Preview lesson 1",
+    badgeLabel: isPaid ? "Mentored · Live 1:1" : "Free · Open community class",
+    heroCtaLabel: isPaid ? "Book a free demo" : "Join for free",
+    heroCtaSecondary: "See curriculum",
     priceLine: isPaid
       ? "Free demo class — tuition arranged directly with your teacher afterward."
-      : "Completely free to access — no card required, ever.",
-    formatLine: isPaid ? "Live 1:1 sessions" : "Self-paced video",
+      : "Completely free to join — no card required, ever.",
+    formatLine: isPaid ? "Live 1:1 sessions" : "Live community class",
+    previewLine: isPaid ? "Watch a 90-second preview" : "Sessions shared in the community",
     certLine: "Certificate on completion",
     trustLine: isPaid ? "Taught, never transactional" : "No sign-up friction",
     coursesAnchor: isPaid ? "/#courses" : "/#free",
-    stickyLabel: isPaid ? "Book free demo" : "Start free",
+    stickyLabel: isPaid ? "Book free demo" : "Join free",
   };
 }
 

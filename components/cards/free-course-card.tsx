@@ -11,9 +11,10 @@ export function FreeCourseCard({
   duration,
   schedule,
   accent,
+  live = true,
 }: FreeCourse) {
   return (
-    <div className="group relative flex flex-col gap-3 overflow-hidden rounded-[20px] border border-border bg-surface p-[26px] shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
+    <div className="group relative flex h-full flex-col gap-3 overflow-hidden rounded-[20px] border border-border bg-surface p-[26px] shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]">
       <span
         aria-hidden="true"
         className={`pointer-events-none absolute -right-2 -bottom-[22px] text-[96px] leading-none opacity-[0.08] ${accentText[accent]}`}
@@ -40,13 +41,20 @@ export function FreeCourseCard({
       <p className="flex-1 text-[13.5px] text-text">{description}</p>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-border pt-3.5 text-xs text-muted">
-        <span className="inline-flex items-center gap-1.5 font-semibold text-green">
-          <span className="relative flex h-[7px] w-[7px]">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-75" />
-            <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-green" />
+        {live ? (
+          <span className="inline-flex items-center gap-1.5 font-semibold text-green">
+            <span className="relative flex h-[7px] w-[7px]">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-75" />
+              <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-green" />
+            </span>
+            {schedule}
           </span>
-          {schedule}
-        </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 font-semibold text-muted">
+            <span className="h-[7px] w-[7px] rounded-full bg-border-strong" />
+            {schedule}
+          </span>
+        )}
         <span className="text-border-strong">·</span>
         <span>{duration}</span>
       </div>

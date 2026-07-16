@@ -1,14 +1,38 @@
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Reveal } from "@/components/ui/reveal";
 import { StarRating } from "@/components/ui/star-rating";
 import { StatCard } from "@/components/cards/stat-card";
 import { TestimonialCard } from "@/components/cards/testimonial-card";
-import { trustStats, testimonials } from "@/lib/data/testimonials";
+import { trustStats } from "@/lib/data/testimonials";
+import { getPublishedReviews } from "@/lib/supabase";
+import type { AccentToken, ReviewRow, Testimonial } from "@/lib/types";
 
-export function Trust() {
-  const featuredTestimonial = testimonials.find((t) => t.featured);
-  const restTestimonials = testimonials.filter((t) => !t.featured);
+const CARD_ACCENTS: AccentToken[] = ["navy", "primary", "primary-2", "gold", "green"];
+const REVIEWER_LABEL: Record<ReviewRow["reviewer_type"], string> = {
+  parent: "Parent",
+  student: "Student",
+};
+
+function toTestimonial(review: ReviewRow, accentIndex: number, featured = false): Testimonial {
+  return {
+    quote: review.review_text,
+    name: review.name,
+    role: `${REVIEWER_LABEL[review.reviewer_type]} · ${review.city}, ${review.country}`,
+    accent: CARD_ACCENTS[accentIndex % CARD_ACCENTS.length],
+    featured,
+  };
+}
+
+export async function Trust() {
+  const { data } = await getPublishedReviews();
+  const reviews = data ?? [];
+  const totalReviews = reviews.length;
+
+  const featuredTestimonial = reviews[0] ? toTestimonial(reviews[0], 0, true) : undefined;
+  const restTestimonials = reviews.slice(1, 7).map((review, i) => toTestimonial(review, i + 1));
+  const allTestimonials = featuredTestimonial ? [featuredTestimonial, ...restTestimonials] : [];
 
   return (
     <section id="trust" className="relative overflow-hidden bg-navy">
@@ -39,16 +63,25 @@ export function Trust() {
             </Reveal>
           </div>
           <Reveal delay={180}>
-            <div className="flex items-center gap-2.5 rounded-full border border-white/16 bg-white/[0.08] px-[18px] py-[11px]">
-              <StarRating className="text-base" />
-              <span className="text-sm font-bold">
-                4.9<span className="font-medium opacity-60"> /5 · 600+ reviews</span>
-              </span>
+            <div className="flex flex-col items-end gap-3">
+              <div className="flex items-center gap-2.5 rounded-full border border-white/16 bg-white/[0.08] px-[18px] py-[11px]">
+                <StarRating className="text-base" />
+                <span className="text-sm font-bold">
+                  5
+                  <span className="font-medium opacity-60">
+                    {" "}
+                    /5 · {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
+                  </span>
+                </span>
+              </div>
+              <Button href="/reviews" variant="invert" size="sm" withArrow>
+                View all reviews
+              </Button>
             </div>
           </Reveal>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-[20px] border border-white/12 bg-white/12 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-3 gap-px overflow-hidden rounded-[20px] border border-white/12 bg-white/12">
           {trustStats.map((stat, i) => (
             <Reveal key={stat.label} delay={i * 70} className="h-full">
               <StatCard {...stat} accentGold={i % 2 === 1} />
@@ -56,40 +89,46 @@ export function Trust() {
           ))}
         </div>
 
-        {/* Tablet / desktop: original static grid */}
-        <div className="mt-5 hidden gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((testimonial, i) => (
-            <Reveal key={testimonial.name} delay={i * 80} className={testimonial.featured ? "col-span-full" : ""}>
-              <TestimonialCard {...testimonial} />
-            </Reveal>
-          ))}
-        </div>
-
-        {/* Mobile: featured review static, rest in a continuous slider */}
-        <div className="mt-5 sm:hidden">
-          {featuredTestimonial && <TestimonialCard {...featuredTestimonial} />}
-
-          <div
-            className="group relative mt-5 -mx-7 overflow-hidden"
-            style={{
-              WebkitMaskImage:
-                "linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent)",
-              maskImage:
-                "linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent)",
-            }}
-          >
-            <div
-              className="animate-marquee flex w-max items-stretch gap-5 px-7 group-hover:[animation-play-state:paused]"
-              style={{ animationDuration: "28s" }}
-            >
-              {[...restTestimonials, ...restTestimonials].map((testimonial, i) => (
-                <div key={i} className="w-[82vw] max-w-[320px] shrink-0">
+        {featuredTestimonial && (
+          <>
+            {/* Tablet / desktop: static grid */}
+            <div className="mt-5 hidden gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-3">
+              {allTestimonials.map((testimonial, i) => (
+                <Reveal key={i} delay={i * 80} className={testimonial.featured ? "col-span-full" : ""}>
                   <TestimonialCard {...testimonial} />
-                </div>
+                </Reveal>
               ))}
             </div>
-          </div>
-        </div>
+
+            {/* Mobile: featured review static, rest in a continuous slider */}
+            <div className="mt-5 sm:hidden">
+              <TestimonialCard {...featuredTestimonial} />
+
+              {restTestimonials.length > 0 && (
+                <div
+                  className="group relative mt-5 -mx-7 overflow-hidden"
+                  style={{
+                    WebkitMaskImage:
+                      "linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent)",
+                    maskImage:
+                      "linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent)",
+                  }}
+                >
+                  <div
+                    className="animate-marquee flex w-max items-stretch gap-5 px-7 group-hover:[animation-play-state:paused]"
+                    style={{ animationDuration: "28s" }}
+                  >
+                    {[...restTestimonials, ...restTestimonials].map((testimonial, i) => (
+                      <div key={i} className="w-[82vw] max-w-[320px] shrink-0">
+                        <TestimonialCard {...testimonial} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </section>
   );

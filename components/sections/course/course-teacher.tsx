@@ -22,16 +22,16 @@ export function CourseTeacher({ course }: CourseTeacherProps) {
             <CoverPlaceholder accent={course.accent} className="h-full" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-ink">{course.teacherName}</h3>
-            <p className="mt-1 text-sm font-bold text-primary-2">{course.teacherRole}</p>
+            <h3 className="text-2xl font-bold text-ink">{course.teacherRole}</h3>
+            <p className="mt-1 text-sm font-bold text-primary-2">Assigned after your free trial class</p>
           </div>
           <p className="max-w-[52ch] text-[15px] text-text">{course.teacherBio}</p>
           <div className="flex flex-wrap gap-2.5">
             <span className="rounded-full bg-mint px-3.5 py-1.5 text-[12.5px] font-bold text-primary-2">
-              Ijāzah in recitation
+              Free trial class included
             </span>
             <span className="rounded-full border border-border bg-surface-2 px-3.5 py-1.5 text-[12.5px] font-bold text-text">
-              10+ years teaching
+              Male &amp; female teachers available
             </span>
             <span className="rounded-full border border-border bg-surface-2 px-3.5 py-1.5 text-[12.5px] font-bold text-text">
               {course.studentsLine}
@@ -45,7 +45,7 @@ export function CourseTeacher({ course }: CourseTeacherProps) {
             <p className="relative mt-3.5 font-serif text-[clamp(18px,1.9vw,22px)] leading-[1.5] font-medium italic">
               &ldquo;{course.teacherQuote}&rdquo;
             </p>
-            <div className="relative mt-[18px] text-[13px] text-white/75">— {course.teacherName}</div>
+            <div className="relative mt-[18px] text-[13px] text-white/75">— Al-Mahdrah teaching approach</div>
           </div>
         </Reveal>
       </div>

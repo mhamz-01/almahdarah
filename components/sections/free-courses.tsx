@@ -18,8 +18,8 @@ export function FreeCourses() {
           </Reveal>
           <Reveal delay={90}>
             <p className="mt-3 text-[15.5px] text-text">
-              Self-paced lessons open to everyone. No card, no commitment — just
-              press play.
+              Live weekly classes taught by our teachers, open to everyone. No
+              fee, no commitment — just join the community.
             </p>
           </Reveal>
         </div>
@@ -29,12 +29,12 @@ export function FreeCourses() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-75" />
               <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-green" />
             </span>
-            9 free courses · no sign-up needed
+            {freeCourses.length} free courses · no sign-up needed
           </span>
         </Reveal>
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-[18px] sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2">
         {freeCourses.map((course, i) => (
           <Reveal key={course.title} delay={i * 70}>
             <FreeCourseCard {...course} />

@@ -2,31 +2,24 @@ import type { FacultyMember } from "@/lib/types";
 
 export const faculty: FacultyMember[] = [
   {
-    slug: "shaykh-a-rahman",
-    name: "Shaykh A. Rahman",
-    subject: "Qur'an & Tajwīd",
-    bio: "Ijāzah in recitation; a decade teaching learners of every level.",
+    slug: "haider-bin-farooq",
+    name: "Haider bin Farooq",
+    subject: "Hadith, Aqīdah & Arabic",
+    bio: "Gold Medalist in Islamic Studies (Hadith) from IIUI, with ijāzāt from scholars of Pakistan.",
     accent: "primary",
   },
   {
-    slug: "ustadh-m-yusuf",
-    name: "Ustadh M. Yusuf",
-    subject: "Arabic Language",
-    bio: "Specialist in Nahw & Sarf, making grammar feel effortless.",
+    slug: "ateeq-ur-rehman-zubair",
+    name: "Ustadh Ateeq ur Rehman Zubair",
+    subject: "Tarbiyah, Hadith & Aqīdah",
+    bio: "Gold Medalist (MA Islamic Studies) and MS in Hadith, studying at Umm al-Qura University, Makkah.",
     accent: "primary-2",
   },
   {
-    slug: "ustadha-s-khan",
-    name: "Ustadha S. Khan",
-    subject: "Sisters' Tafsīr",
-    bio: "Warm, structured classes for sisters and younger learners.",
+    slug: "ustadhah-laraib-zafar",
+    name: "Ustadhah Laraib Zafar",
+    subject: "Sisters' Hadith, Fiqh & Tafsīr",
+    bio: "BS in Arabic from IIUI, teaching sisters and younger learners across Hadith, Fiqh and Tafsīr.",
     accent: "gold",
-  },
-  {
-    slug: "shaykh-i-malik",
-    name: "Shaykh I. Malik",
-    subject: "Aqīdah & Fiqh",
-    bio: "Grounds students in sound creed with patience and clarity.",
-    accent: "primary",
   },
 ];

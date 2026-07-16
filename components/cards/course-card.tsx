@@ -16,7 +16,7 @@ export function CourseCard({
   return (
     <Link
       href={`/courses/${slug}`}
-      className={`group relative flex flex-col overflow-hidden rounded-3xl bg-surface shadow-[var(--shadow-sm)] transition-transform duration-200 hover:-translate-y-1.5 ${
+      className={`group relative flex h-full flex-col overflow-hidden rounded-3xl bg-surface shadow-[var(--shadow-sm)] transition-transform duration-200 hover:-translate-y-1.5 ${
         popular ? `border-[1.5px] ${accentBorderSoft[accent]}` : "border border-border"
       }`}
     >

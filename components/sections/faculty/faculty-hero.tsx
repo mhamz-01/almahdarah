@@ -43,10 +43,6 @@ export function FacultyHero({ faculty, hasPaidCourse, primaryCourse }: FacultyHe
         <Reveal className="flex flex-col gap-4">
           <div className="relative aspect-[4/5] overflow-hidden rounded-[26px] shadow-[var(--shadow-lg)]">
             <CoverPlaceholder accent={faculty.accent} align="center" label="[ portrait ]" className="h-full" />
-            <div className="absolute inset-x-4 bottom-4 flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-green shadow-[0_0_0_3px_rgba(255,255,255,0.35)]" />
-              <span className="text-xs font-semibold text-white">{faculty.availability}</span>
-            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             {faculty.credentials.map((credential) => (
@@ -74,23 +70,6 @@ export function FacultyHero({ faculty, hasPaidCourse, primaryCourse }: FacultyHe
 
           <Reveal delay={150}>
             <p className="mt-5 max-w-[62ch] text-[15.5px] text-text">{faculty.bio}</p>
-          </Reveal>
-
-          <Reveal delay={210}>
-            <div className="mt-[26px] grid max-w-[560px] grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-3">
-              <div className="bg-surface px-[18px] py-4">
-                <div className="font-display text-[22px] text-ink">{faculty.statYears}</div>
-                <div className="mt-0.5 text-[11.5px] text-muted">years teaching</div>
-              </div>
-              <div className="bg-surface px-[18px] py-4">
-                <div className="font-display text-[22px] text-ink">{faculty.statStudents}</div>
-                <div className="mt-0.5 text-[11.5px] text-muted">students guided</div>
-              </div>
-              <div className="bg-surface px-[18px] py-4">
-                <div className="font-display text-[22px] text-ink">{faculty.statRating}★</div>
-                <div className="mt-0.5 text-[11.5px] text-muted">average rating</div>
-              </div>
-            </div>
           </Reveal>
 
           <Reveal delay={270}>

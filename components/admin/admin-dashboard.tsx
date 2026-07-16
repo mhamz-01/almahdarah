@@ -36,14 +36,39 @@ function formatDate(iso: string) {
   });
 }
 
-export function AdminDashboard({ leads, leadsError, reviews, reviewsError }: AdminDashboardProps) {
+export function AdminDashboard({ leads, leadsError, reviews: initialReviews, reviewsError }: AdminDashboardProps) {
   const [tab, setTab] = useState<Tab>("leads");
   const [leadSourceFilter, setLeadSourceFilter] = useState<LeadSource | "all">("all");
   const [leadSearch, setLeadSearch] = useState("");
   const [selectedLead, setSelectedLead] = useState<LeadRow | null>(null);
 
+  const [reviews, setReviews] = useState(initialReviews);
   const [reviewSearch, setReviewSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState<number | "all">("all");
+  const [approvalFilter, setApprovalFilter] = useState<"all" | "pending" | "approved">("all");
+  const [pendingToggleIds, setPendingToggleIds] = useState<Set<string>>(new Set());
+
+  async function toggleApproved(review: ReviewRow) {
+    const nextApproved = !review.approved;
+    setPendingToggleIds((prev) => new Set(prev).add(review.id));
+    try {
+      const res = await fetch(`/api/admin/reviews/${review.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approved: nextApproved }),
+      });
+      if (!res.ok) throw new Error("Request failed");
+      setReviews((prev) => prev.map((r) => (r.id === review.id ? { ...r, approved: nextApproved } : r)));
+    } catch {
+      // leave state unchanged; the button reverts since no optimistic update was applied
+    } finally {
+      setPendingToggleIds((prev) => {
+        const next = new Set(prev);
+        next.delete(review.id);
+        return next;
+      });
+    }
+  }
 
   const filteredLeads = useMemo(() => {
     const query = leadSearch.trim().toLowerCase();
@@ -62,6 +87,8 @@ export function AdminDashboard({ leads, leadsError, reviews, reviewsError }: Adm
     const query = reviewSearch.trim().toLowerCase();
     return reviews.filter((review) => {
       if (ratingFilter !== "all" && review.rating !== ratingFilter) return false;
+      if (approvalFilter === "pending" && review.approved) return false;
+      if (approvalFilter === "approved" && !review.approved) return false;
       if (!query) return true;
       return (
         review.name.toLowerCase().includes(query) ||
@@ -69,10 +96,11 @@ export function AdminDashboard({ leads, leadsError, reviews, reviewsError }: Adm
         review.country.toLowerCase().includes(query)
       );
     });
-  }, [reviews, ratingFilter, reviewSearch]);
+  }, [reviews, ratingFilter, approvalFilter, reviewSearch]);
 
   const demoCount = leads.filter((l) => l.source === "demo_booking").length;
   const freeCourseCount = leads.filter((l) => l.source === "free_course").length;
+  const pendingReviewCount = reviews.filter((r) => !r.approved).length;
 
   return (
     <div>
@@ -93,7 +121,7 @@ export function AdminDashboard({ leads, leadsError, reviews, reviewsError }: Adm
             tab === "reviews" ? "bg-primary text-white" : "border border-border-strong bg-surface text-muted"
           }`}
         >
-          Reviews ({reviews.length})
+          Reviews ({reviews.length}){pendingReviewCount > 0 ? ` · ${pendingReviewCount} pending` : ""}
         </button>
       </div>
 
@@ -205,6 +233,22 @@ export function AdminDashboard({ leads, leadsError, reviews, reviewsError }: Adm
               className="h-11 w-full max-w-[320px] rounded-xl border-[1.5px] border-border-strong bg-surface px-4 text-[14px] text-ink outline-none focus:border-primary"
             />
             <div className="flex gap-2">
+              {(["all", "pending", "approved"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setApprovalFilter(value)}
+                  className={`flex h-11 items-center rounded-xl border-[1.5px] px-3.5 text-[13px] font-semibold capitalize transition-colors ${
+                    approvalFilter === value
+                      ? "border-primary bg-primary text-white"
+                      : "border-border-strong bg-surface text-muted hover:border-primary hover:text-ink"
+                  }`}
+                >
+                  {value === "all" ? "All statuses" : value}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
               {(["all", 5, 4, 3, 2, 1] as const).map((value) => (
                 <button
                   key={value}
@@ -232,12 +276,33 @@ export function AdminDashboard({ leads, leadsError, reviews, reviewsError }: Adm
                       <span className="inline-flex items-center rounded-full bg-navy/12 px-2.5 py-0.5 text-[11.5px] font-bold text-navy">
                         {reviewerLabels[review.reviewer_type]}
                       </span>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11.5px] font-bold ${
+                          review.approved ? "bg-green/15 text-green" : "bg-gold/25 text-[#8a6b12]"
+                        }`}
+                      >
+                        {review.approved ? "Approved" : "Pending"}
+                      </span>
                     </div>
                     <p className="mt-0.5 text-[13px] text-muted">
                       {review.city}, {review.country} · {formatDate(review.created_at)}
                     </p>
                   </div>
-                  <StarRating count={review.rating} />
+                  <div className="flex items-center gap-3">
+                    <StarRating count={review.rating} />
+                    <button
+                      type="button"
+                      onClick={() => toggleApproved(review)}
+                      disabled={pendingToggleIds.has(review.id)}
+                      className={`flex h-9 items-center rounded-full border-[1.5px] px-3.5 text-[12.5px] font-bold transition-colors disabled:opacity-50 ${
+                        review.approved
+                          ? "border-border-strong bg-surface text-muted hover:border-primary hover:text-ink"
+                          : "border-primary bg-primary text-white hover:brightness-[1.07]"
+                      }`}
+                    >
+                      {pendingToggleIds.has(review.id) ? "Saving…" : review.approved ? "Unapprove" : "Approve"}
+                    </button>
+                  </div>
                 </div>
                 <p className="mt-3 text-[14.5px] text-text">{review.review_text}</p>
               </div>

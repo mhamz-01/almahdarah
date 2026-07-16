@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { ReviewRow } from "@/lib/types";
 
 export function createSupabaseServerClient() {
   return createClient(
@@ -38,4 +39,15 @@ export async function insertReview(review: ReviewInsert) {
   const supabase = createSupabaseServerClient();
   const { error } = await supabase.from("reviews").insert(review);
   if (error) throw error;
+}
+
+// Uses the anon key, so row-level security only ever returns approved reviews here.
+export async function getPublishedReviews() {
+  const supabase = createSupabaseServerClient();
+  return supabase
+    .from("reviews")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(200)
+    .returns<ReviewRow[]>();
 }

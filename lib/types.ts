@@ -44,6 +44,7 @@ export interface FreeCourse {
   duration: string;
   schedule: string;
   accent: AccentToken;
+  live?: boolean;
 }
 
 export interface FacultyMember {
@@ -59,14 +60,6 @@ export interface FacultySpecialty {
   title: string;
   text: string;
 }
-
-export interface FacultyTimelineEntry {
-  year: string;
-  title: string;
-  text: string;
-}
-
-export type FacultyAvailability = "Accepting new students" | "Waitlist only" | "Fully booked";
 
 export interface BookingFormState {
   name: string;
@@ -118,6 +111,7 @@ export interface ReviewRow {
   city: string;
   rating: number;
   review_text: string;
+  approved: boolean;
 }
 
 export interface FacultyProfile {
@@ -126,14 +120,8 @@ export interface FacultyProfile {
   role: string;
   department: string;
   bio: string;
-  availability: FacultyAvailability;
-  statYears: string;
-  statStudents: string;
-  statRating: string;
   credentials: string[];
   specialties: FacultySpecialty[];
-  timeline: FacultyTimelineEntry[];
-  philosophyQuote: string;
   courseSlugs: string[];
   accent: AccentToken;
 }
@@ -213,8 +201,9 @@ export interface CourseDetail {
   teacherQuote: string;
   durationLine: string;
   statStudents: string;
-  statCountries: string;
-  statCompletion: string;
+  statCountries?: string;
+  statCompletion?: string;
+  formatLine?: string;
   accent: AccentToken;
   outcomes: string[];
   modules: CourseModule[];

@@ -78,7 +78,7 @@ export function CourseHero({ course }: CourseHeroProps) {
             <div className="mt-5 flex items-center gap-2.5">
               <AvatarPlaceholder accent={course.accent} size={34} className="border-2 border-surface shadow-[var(--shadow-sm)]" />
               <span className="text-[13.5px] text-text">
-                Taught by <strong className="text-ink">{course.teacherName}</strong> · {course.teacherRole}
+                Taught live by a dedicated <strong className="text-ink">{course.teacherRole}</strong>
               </span>
             </div>
           </Reveal>
@@ -119,13 +119,13 @@ export function CourseHero({ course }: CourseHeroProps) {
                 <span className="ml-1 border-y-[12px] border-l-[20px] border-y-transparent border-l-primary" />
               </button>
               <span className="absolute bottom-3.5 left-4 text-xs font-semibold text-white/85">
-                Watch a 90-second preview
+                {copy.previewLine}
               </span>
             </div>
             <div className="flex flex-col gap-3.5 p-6">
               <span className="text-[13px] font-bold text-ink">This course includes</span>
               <div className="grid grid-cols-2 gap-3">
-                {[moduleCountLine, course.durationLine, copy.formatLine, copy.certLine].map((item) => (
+                {[moduleCountLine, course.durationLine, course.formatLine ?? copy.formatLine, copy.certLine].map((item) => (
                   <div key={item} className="flex items-center gap-2">
                     <span className="h-2 w-2 rotate-45 bg-primary" />
                     <span className="text-[13px] text-text">{item}</span>
@@ -145,7 +145,12 @@ export function CourseHero({ course }: CourseHeroProps) {
       </div>
 
       <div className="border-y border-border bg-surface">
-        <div className="mx-auto grid max-w-[1240px] grid-cols-2 gap-3.5 px-7 py-[17px] text-center sm:grid-cols-4">
+        <div
+          className="mx-auto grid max-w-[1240px] gap-3.5 px-7 py-[17px] text-center"
+          style={{
+            gridTemplateColumns: `repeat(${2 + (course.statCountries ? 1 : 0) + (course.statCompletion ? 1 : 0)}, minmax(0, 1fr))`,
+          }}
+        >
           <div>
             <div className="font-display text-[22px] text-ink">{course.statStudents}</div>
             <div className="text-xs text-muted">students taught</div>
@@ -154,14 +159,18 @@ export function CourseHero({ course }: CourseHeroProps) {
             <div className="font-display text-[22px] text-ink">{course.rating}★</div>
             <div className="text-xs text-muted">average rating</div>
           </div>
-          <div>
-            <div className="font-display text-[22px] text-ink">{course.statCountries}</div>
-            <div className="text-xs text-muted">countries reached</div>
-          </div>
-          <div>
-            <div className="font-display text-[22px] text-ink">{course.statCompletion}</div>
-            <div className="text-xs text-muted">finish what they start</div>
-          </div>
+          {course.statCountries && (
+            <div>
+              <div className="font-display text-[22px] text-ink">{course.statCountries}</div>
+              <div className="text-xs text-muted">countries reached</div>
+            </div>
+          )}
+          {course.statCompletion && (
+            <div>
+              <div className="font-display text-[22px] text-ink">{course.statCompletion}</div>
+              <div className="text-xs text-muted">finish what they start</div>
+            </div>
+          )}
         </div>
       </div>
     </section>

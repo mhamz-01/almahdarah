@@ -6,7 +6,7 @@ export function FacultyCard({ slug, name, subject, bio, accent }: FacultyMember)
   return (
     <Link
       href={`/faculty/${slug}`}
-      className="group block rounded-[22px] border border-border bg-surface p-[26px] text-center shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]"
+      className="group flex h-full flex-col rounded-[22px] border border-border bg-surface p-[26px] text-center shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]"
     >
       <AvatarPlaceholder
         accent={accent}
@@ -15,7 +15,7 @@ export function FacultyCard({ slug, name, subject, bio, accent }: FacultyMember)
       />
       <h3 className="text-[17px] font-bold text-ink">{name}</h3>
       <p className="mt-1 mb-2.5 text-[13px] font-bold text-green">{subject}</p>
-      <p className="text-[13px] text-text">{bio}</p>
+      <p className="flex-1 text-[13px] text-text">{bio}</p>
     </Link>
   );
 }

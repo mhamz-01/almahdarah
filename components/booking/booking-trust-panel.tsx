@@ -43,7 +43,7 @@ export function BookingTrustPanel() {
 
       <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-surface px-4 py-3.5">
         <span className="h-2 w-2 flex-none rounded-full bg-green" />
-        <span className="text-[12.5px] text-text">2,000+ students taught across 30+ countries</span>
+        <span className="text-[12.5px] text-text">50+ students taught across 2+ countries</span>
       </div>
     </aside>
   );

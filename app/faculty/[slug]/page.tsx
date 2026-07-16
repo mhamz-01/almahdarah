@@ -4,8 +4,6 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { FacultyHero } from "@/components/sections/faculty/faculty-hero";
 import { FacultySpecialties } from "@/components/sections/faculty/faculty-specialties";
-import { FacultyTimeline } from "@/components/sections/faculty/faculty-timeline";
-import { FacultyPhilosophy } from "@/components/sections/faculty/faculty-philosophy";
 import { FacultyCourses } from "@/components/sections/faculty/faculty-courses";
 import { FacultyDemoCta } from "@/components/sections/faculty/faculty-demo-cta";
 import { LazySection } from "@/components/ui/lazy-section";
@@ -50,14 +48,6 @@ export default async function FacultyPage({ params }: FacultyPageProps) {
 
         <LazySection fallback={<CourseSectionSkeleton rows={4} bordered />} minHeight={480}>
           <FacultySpecialties faculty={faculty} />
-        </LazySection>
-
-        <LazySection fallback={<CourseSectionSkeleton rows={4} />} minHeight={560}>
-          <FacultyTimeline timeline={faculty.timeline} />
-        </LazySection>
-
-        <LazySection fallback={<CourseSectionSkeleton rows={1} />} minHeight={420}>
-          <FacultyPhilosophy faculty={faculty} />
         </LazySection>
 
         <LazySection fallback={<CourseSectionSkeleton rows={3} />} minHeight={520}>
