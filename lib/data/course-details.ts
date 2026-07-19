@@ -4,7 +4,7 @@ const liveFreeLogistics: CourseLogisticsRow[] = [
   { label: "Format", value: "Live online class, via community group" },
   { label: "Session length", value: "~45–60 minutes" },
   { label: "Frequency", value: "Weekly, fixed schedule" },
-  { label: "Medium", value: "English, with Arabic text & translation" },
+  { label: "Medium", value: "Urdu, with Arabic text & translation" },
   { label: "Access", value: "Join anytime, sessions shared for catch-up" },
   { label: "Support", value: "Live Q&A + community group" },
 ];
@@ -13,7 +13,7 @@ const recordedFreeLogistics: CourseLogisticsRow[] = [
   { label: "Format", value: "Recorded playlist, self-paced" },
   { label: "Session length", value: "Full series already recorded" },
   { label: "Frequency", value: "Watch anytime, at your own pace" },
-  { label: "Medium", value: "English, with Arabic text & translation" },
+  { label: "Medium", value: "Urdu, with Arabic text & translation" },
   { label: "Access", value: "Lifetime, revisit anytime" },
   { label: "Support", value: "Community discussion group" },
 ];

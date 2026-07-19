@@ -12,10 +12,28 @@ export function RouteLoader() {
   const [visible, setVisible] = useState(true);
   const shownAtRef = useRef(Date.now());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isPopNavRef = useRef(false);
+
+  // Back/forward navigation should restore the browser's own scroll position —
+  // only force-reset on regular forward navigations (link clicks).
+  useEffect(() => {
+    function handlePopState() {
+      isPopNavRef.current = true;
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Hide once this route has mounted, respecting a minimum visible time so
   // fast navigations still read as a deliberate transition, not a flicker.
+  // Also force-resets scroll to top, since the overlay masks the correction —
+  // a guaranteed fallback independent of the framework's own scroll handling.
   useEffect(() => {
+    if (!isPopNavRef.current && !window.location.hash) {
+      window.scrollTo(0, 0);
+    }
+    isPopNavRef.current = false;
+
     if (timerRef.current) clearTimeout(timerRef.current);
     const elapsed = Date.now() - shownAtRef.current;
     const wait = Math.max(MIN_VISIBLE_MS - elapsed, 0);

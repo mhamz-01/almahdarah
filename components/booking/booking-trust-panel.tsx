@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { ReviewRow } from "@/lib/types";
 
 const expectations = [
   { icon: "⏱", label: "30-minute live session" },
@@ -7,7 +8,16 @@ const expectations = [
   { icon: "🚫", label: "Zero obligation to continue" },
 ];
 
-export function BookingTrustPanel() {
+const REVIEWER_LABEL: Record<ReviewRow["reviewer_type"], string> = {
+  parent: "Parent",
+  student: "Student",
+};
+
+interface BookingTrustPanelProps {
+  review: ReviewRow | null;
+}
+
+export function BookingTrustPanel({ review }: BookingTrustPanelProps) {
   return (
     <aside className="sticky top-6 hidden flex-col gap-4 lg:flex">
       <div className="rounded-[20px] border border-border bg-surface p-[22px] shadow-[var(--shadow-sm)]">
@@ -24,22 +34,25 @@ export function BookingTrustPanel() {
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-[20px] bg-navy p-[22px] text-white">
-        <Image
-          src="/assets/almahdrah-logo.png"
-          alt=""
-          width={110}
-          height={110}
-          loading="lazy"
-          className="pointer-events-none absolute -right-6 -bottom-6 w-[110px] opacity-[0.08] invert"
-        />
-        <span className="text-[13px] tracking-[2px] text-gold">★★★★★</span>
-        <p className="relative mt-2.5 font-serif text-[14.5px] leading-[1.55] italic">
-          &ldquo;The demo made it completely risk-free to begin — my children look forward to every class
-          now.&rdquo;
-        </p>
-        <div className="relative mt-3 text-xs text-white/70">— Umm Abdullah, homeschooling parent</div>
-      </div>
+      {review && (
+        <div className="relative overflow-hidden rounded-[20px] bg-navy p-[22px] text-white">
+          <Image
+            src="/assets/almahdrah-logo.png"
+            alt=""
+            width={110}
+            height={110}
+            loading="lazy"
+            className="pointer-events-none absolute -right-6 -bottom-6 w-[110px] opacity-[0.08] invert"
+          />
+          <span className="text-[13px] tracking-[2px] text-gold">{"★".repeat(review.rating)}</span>
+          <p className="relative mt-2.5 line-clamp-4 font-serif text-[14.5px] leading-[1.55] italic">
+            &ldquo;{review.review_text}&rdquo;
+          </p>
+          <div className="relative mt-3 text-xs text-white/70">
+            — {review.name}, {REVIEWER_LABEL[review.reviewer_type]} · {review.city}, {review.country}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-2.5 rounded-2xl border border-border bg-surface px-4 py-3.5">
         <span className="h-2 w-2 flex-none rounded-full bg-green" />

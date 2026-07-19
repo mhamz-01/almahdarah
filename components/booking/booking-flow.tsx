@@ -9,11 +9,15 @@ import { BookingConfirmationBanner } from "@/components/booking/booking-confirma
 import { BookingTrustPanel } from "@/components/booking/booking-trust-panel";
 import { mentoredCourses } from "@/lib/data/courses";
 import { CALENDLY_URL } from "@/lib/config";
-import type { BookingFormState } from "@/lib/types";
+import type { BookingFormState, ReviewRow } from "@/lib/types";
 
 const DEFAULT_COURSE = mentoredCourses[0]?.title ?? "Tajwīd & Recitation";
 
-export function BookingFlow() {
+interface BookingFlowProps {
+  featuredReview: ReviewRow | null;
+}
+
+export function BookingFlow({ featuredReview }: BookingFlowProps) {
   const searchParams = useSearchParams();
 
   const initialCourse = useMemo(() => {
@@ -158,7 +162,7 @@ export function BookingFlow() {
           )}
         </div>
 
-        <BookingTrustPanel />
+        <BookingTrustPanel review={featuredReview} />
       </main>
     </>
   );
