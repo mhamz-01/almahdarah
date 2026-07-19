@@ -247,6 +247,8 @@ body {
   .animate-ping,
   .animate-blob,
   .animate-blob-delay,
+  .animate-pulse-soft,
+  .animate-loader-spin,
   .select-content,
   .dialog-overlay,
   .dialog-content {
@@ -277,5 +279,31 @@ body {
   }
   50% {
     opacity: 1;
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 1.9s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.92);
+    opacity: 0.72;
+  }
+}
+
+.animate-loader-spin {
+  animation: loader-spin 1.1s linear infinite;
+}
+
+@keyframes loader-spin {
+  to {
+    transform: rotate(360deg);
   }
 }

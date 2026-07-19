@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SmoothNavLink } from "@/components/layout/smooth-nav-link";
 import type { NavLink } from "@/lib/types";
 
 interface MobileNavProps {
@@ -70,17 +71,17 @@ export function MobileNav({ links }: MobileNavProps) {
       >
         <nav className="flex flex-col gap-1">
           {links.map((link, i) => (
-            <a
+            <SmoothNavLink
               key={link.href}
               href={link.href}
-              onClick={() => setOpen(false)}
+              onNavigate={() => setOpen(false)}
               style={{ transitionDelay: open ? `${i * 40 + 80}ms` : "0ms" }}
               className={`rounded-[12px] px-4 py-3 font-semibold text-fg transition-all duration-300 ease-out hover:bg-surface-2 hover:text-primary ${
                 open ? "translate-x-0 opacity-100" : "translate-x-3 opacity-0"
               }`}
             >
               {link.label}
-            </a>
+            </SmoothNavLink>
           ))}
         </nav>
         <div className="mt-1 border-t border-border p-2 pt-3">

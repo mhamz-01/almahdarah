@@ -13,9 +13,15 @@ export function FacultyCard({ slug, name, subject, bio, accent }: FacultyMember)
         size={98}
         className="mx-auto mb-4 border-[3px] border-surface shadow-[var(--shadow-sm)] transition-transform duration-300 ease-out group-hover:scale-[1.07] group-hover:-rotate-2"
       />
-      <h3 className="text-[17px] font-bold text-ink">{name}</h3>
-      <p className="mt-1 mb-2.5 text-[13px] font-bold text-green">{subject}</p>
-      <p className="flex-1 text-[13px] text-text">{bio}</p>
+      <h3 className="line-clamp-2 text-[17px] font-bold text-ink">{name}</h3>
+      <p className="mt-1 mb-2.5 line-clamp-1 text-[13px] font-bold text-green">{subject}</p>
+      <p className="line-clamp-3 flex-1 text-[13px] text-text">{bio}</p>
+      <span className="mt-4 inline-flex items-center justify-center gap-1.5 border-t border-border pt-4 text-[12.5px] font-bold text-green">
+        View profile
+        <span className="inline-block text-[1.15em] leading-none transition-transform duration-200 group-hover:translate-x-1">
+          →
+        </span>
+      </span>
     </Link>
   );
 }

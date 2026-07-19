@@ -5,7 +5,7 @@ import { visionPillars } from "@/lib/data/vision";
 
 export function Vision() {
   return (
-    <section id="vision" className="mx-auto max-w-[1240px] px-7 py-16 sm:py-20 lg:py-[110px]">
+    <section id="vision" className="scroll-mt-[88px] mx-auto max-w-[1240px] px-7 py-16 sm:py-20 lg:py-[110px]">
       <div className="max-w-[780px]">
         <Reveal>
           <Eyebrow className="text-green" lineClassName="bg-green">

@@ -14,7 +14,7 @@ const footerColumns = [
     links: [
       { label: "Our vision", href: "#vision" },
       { label: "Faculty", href: "#faculty" },
-      { label: "Journal", href: "#blog" },
+      // { label: "Journal", href: "#blog" }, // hidden for now
     ],
   },
   {

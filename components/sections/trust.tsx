@@ -31,7 +31,7 @@ export async function Trust() {
   const totalReviews = reviews.length;
 
   const featuredTestimonial = reviews[0] ? toTestimonial(reviews[0], 0, true) : undefined;
-  const restTestimonials = reviews.slice(1, 7).map((review, i) => toTestimonial(review, i + 1));
+  const restTestimonials = reviews.slice(1, 4).map((review, i) => toTestimonial(review, i + 1));
   const allTestimonials = featuredTestimonial ? [featuredTestimonial, ...restTestimonials] : [];
 
   return (

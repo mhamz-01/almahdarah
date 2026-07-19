@@ -70,6 +70,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Separate male and female teachers are available, with classes arranged around your schedule and paced to how quickly you're ready to progress — recordings are provided so nothing is missed.",
     teacherQuote: "Master the Foundations of Quranic Reading",
+    heroQuote: "The best among you are those who learn the Qur'an and teach it.",
+    heroQuoteSource: "Prophet Muhammad ﷺ · Sahih al-Bukhari",
     durationLine: "2–4 months",
     statStudents: "50+",
     statCountries: "2+",
@@ -148,6 +150,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Choice of one-on-one or group classes, arranged around your schedule, with separate male and female teachers available and content adapted to your child's age, level and Islamic background.",
     teacherQuote: "Building a Strong Muslim Identity for the Next Generation",
+    heroQuote: "My Lord, increase me in knowledge.",
+    heroQuoteSource: "Qur'an 20:114",
     durationLine: "One year",
     statStudents: "50+",
     statCountries: "2+",
@@ -235,6 +239,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "One-on-one online classes arranged around your schedule, with separate male and female teachers and every session recorded for revision.",
     teacherQuote: "Reading the Quran with Confidence, Fluency, and Understanding",
+    heroQuote: "Whoever recites a letter from the Book of Allah receives a reward, and that reward is multiplied tenfold.",
+    heroQuoteSource: "Prophet Muhammad ﷺ · Jami' at-Tirmidhi",
     durationLine: "Ongoing — no fixed duration",
     statStudents: "50+",
     statCountries: "2+",
@@ -322,6 +328,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Taught strictly according to the understanding of the Salaf as-Salih, with separate tracks for kids/teens and adults, flexible scheduling, and every session recorded for revision.",
     teacherQuote: "Understanding the Meanings of Allah's Words",
+    heroQuote: "Do they not reflect upon the Qur'an, or are there locks upon their hearts?",
+    heroQuoteSource: "Qur'an 47:24",
     durationLine: "Ongoing — module by module",
     statStudents: "50+",
     statCountries: "2+",
@@ -411,6 +419,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Taught in Modern Standard Arabic across three levels, with both male and female teachers available and every session recorded so you can revisit lessons anytime.",
     teacherQuote: "Speak, Understand, and Connect in Modern Standard Arabic",
+    heroQuote: "Learn Arabic, for it is part of your religion.",
+    heroQuoteSource: "Umar ibn al-Khattab (raḍiyallāhu ʿanhu)",
     durationLine: "3 levels · 4 months each (12 months total)",
     statStudents: "50+",
     statCountries: "2+",
@@ -492,6 +502,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Builds Nahw and Sarf step by step across three levels, with both male and female teachers available and every session recorded for revision.",
     teacherQuote: "Understanding the Language of the Quran",
+    heroQuote: "We have sent it down as an Arabic Qur'an so that you may understand.",
+    heroQuoteSource: "Qur'an 12:2",
     durationLine: "3 levels · 3 months each (9 months total)",
     statStudents: "50+",
     statCountries: "2+",
@@ -576,6 +588,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Theme-based lessons paced to your child's age, with both male and female teachers available and every session recorded so nothing is missed.",
     teacherQuote: "Learning Arabic Through Everyday Themes",
+    heroQuote: "Make things easy and do not make them difficult; give glad tidings and do not repel people.",
+    heroQuoteSource: "Prophet Muhammad ﷺ · Sahih al-Bukhari",
     durationLine: "3 stages · 3 months each (9 months total)",
     statStudents: "50+",
     statCountries: "2+",
@@ -652,6 +666,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Progress follows the traditional Sabaq, Sabqi and Manzil system, with both male and female teachers available and a pace personalised to each student's consistency.",
     teacherQuote: "Preserving the Words of Allah in the Heart",
+    heroQuote: "We have made the Qur'an easy to remember — so is there any who will remember?",
+    heroQuoteSource: "Qur'an 54:17",
     durationLine: "Ongoing — partial or full Quran",
     statStudents: "50+",
     statCountries: "2+",
@@ -729,6 +745,8 @@ export const courseDetails: CourseDetail[] = [
       "Explains the meanings of the Qur'an through the understanding of the righteous predecessors (Salaf), the authentic Sunnah, and the works of reliable scholars of Ahl al-Sunnah.",
     teacherQuote:
       "The Qur'an is the ultimate source of guidance — understood correctly, it becomes a practical guide for every part of life.",
+    heroQuote: "A blessed Book which We have revealed to you, that they may reflect upon its verses.",
+    heroQuoteSource: "Qur'an 38:29",
     durationLine: "Weekly live class · Mondays",
     statStudents: "100+",
     accent: "primary",
@@ -813,6 +831,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Teaches the authentic narrations of Prophet Muhammad ﷺ on purification, prayer, fasting, zakah, Hajj and daily life, according to the methodology of Ahl al-Sunnah.",
     teacherQuote: "Every act of worship should be understood from the authentic Sunnah, not guessed at.",
+    heroQuote: "Whomever Allah wishes good for, He gives him understanding of the religion.",
+    heroQuoteSource: "Prophet Muhammad ﷺ · Sahih al-Bukhari",
     durationLine: "Weekly live class · Thursdays",
     statStudents: "100+",
     accent: "green",
@@ -897,6 +917,8 @@ export const courseDetails: CourseDetail[] = [
       "Teaches Arabic through direct reading of classical texts rather than grammar alone, helping students approach original Islamic works with growing confidence.",
     teacherQuote:
       "Understanding Arabic opens the door to the Qur'an, the Sunnah and the heritage of Islamic scholarship directly.",
+    heroQuote: "Whoever follows a path seeking knowledge, Allah makes easy for him a path to Paradise.",
+    heroQuoteSource: "Prophet Muhammad ﷺ · Sahih Muslim",
     durationLine: "Weekly live class · Tue & Wed",
     statStudents: "100+",
     accent: "gold",
@@ -980,6 +1002,8 @@ export const courseDetails: CourseDetail[] = [
     teacherBio:
       "Taught Al-'Aqeedah al-Wasitiyyah with textual evidence from the Qur'an and authentic Sunnah, following the understanding of the righteous predecessors.",
     teacherQuote: "Correct belief is the foundation every act of worship is built upon.",
+    heroQuote: "So know that there is no deity except Allah.",
+    heroQuoteSource: "Qur'an 47:19",
     durationLine: "Full series · watch anytime",
     statStudents: "100+",
     accent: "navy",

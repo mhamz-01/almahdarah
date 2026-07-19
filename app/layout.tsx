@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo_Black, Inter, JetBrains_Mono, Spectral } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { RouteLoader } from "@/components/layout/route-loader";
 import "./globals.css";
 
 const archivoBlack = Archivo_Black({
@@ -48,7 +49,10 @@ export default function RootLayout({
       <body
         className={`${archivoBlack.variable} ${inter.variable} ${spectral.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <RouteLoader />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

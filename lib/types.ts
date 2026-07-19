@@ -199,6 +199,8 @@ export interface CourseDetail {
   teacherRole: string;
   teacherBio: string;
   teacherQuote: string;
+  heroQuote: string;
+  heroQuoteSource: string;
   durationLine: string;
   statStudents: string;
   statCountries?: string;

@@ -6,7 +6,7 @@ import { Trust } from "@/components/sections/trust";
 import { PaidCourses } from "@/components/sections/paid-courses";
 import { FreeCourses } from "@/components/sections/free-courses";
 import { Faculty } from "@/components/sections/faculty";
-import { Journal } from "@/components/sections/journal";
+// import { Journal } from "@/components/sections/journal"; // hidden for now
 import { DemoCta } from "@/components/sections/demo-cta";
 import { LazySection } from "@/components/ui/lazy-section";
 import { VisionSkeleton } from "@/components/skeletons/vision-skeleton";
@@ -14,7 +14,7 @@ import { TrustSkeleton } from "@/components/skeletons/trust-skeleton";
 import { PaidCoursesSkeleton } from "@/components/skeletons/paid-courses-skeleton";
 import { FreeCoursesSkeleton } from "@/components/skeletons/free-courses-skeleton";
 import { FacultySkeleton } from "@/components/skeletons/faculty-skeleton";
-import { JournalSkeleton } from "@/components/skeletons/journal-skeleton";
+// import { JournalSkeleton } from "@/components/skeletons/journal-skeleton"; // hidden for now
 import { DemoCtaSkeleton } from "@/components/skeletons/demo-cta-skeleton";
 
 export default function Home() {
@@ -44,9 +44,11 @@ export default function Home() {
           <Faculty />
         </LazySection>
 
+        {/* Journal section hidden for now
         <LazySection fallback={<JournalSkeleton />} minHeight={600}>
           <Journal />
         </LazySection>
+        */}
 
         <LazySection fallback={<DemoCtaSkeleton />} minHeight={480}>
           <DemoCta />

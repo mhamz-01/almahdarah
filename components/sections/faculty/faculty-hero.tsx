@@ -42,7 +42,7 @@ export function FacultyHero({ faculty, hasPaidCourse, primaryCourse }: FacultyHe
       <div className="relative mx-auto grid max-w-[1160px] grid-cols-1 items-start gap-9 px-7 pt-7 pb-16 sm:pb-20 md:grid-cols-[minmax(220px,300px)_minmax(0,1fr)] lg:gap-14">
         <Reveal className="flex flex-col gap-4">
           <div className="relative aspect-[4/5] overflow-hidden rounded-[26px] shadow-[var(--shadow-lg)]">
-            <CoverPlaceholder accent={faculty.accent} align="center" label="[ portrait ]" className="h-full" />
+            <CoverPlaceholder accent={faculty.accent} className="h-full" />
           </div>
           <div className="flex flex-wrap gap-2">
             {faculty.credentials.map((credential) => (

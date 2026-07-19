@@ -103,7 +103,7 @@ export function Hero() {
             </span>
             <div className="relative">
               <p className="mb-4 font-serif text-[clamp(27px,3.1vw,40px)] leading-[1.16] text-balance italic">
-                &ldquo;From the ink-pot till the grave.&rdquo;
+                &ldquo;With the ink-pot till the grave.&rdquo;
               </p>
               <p className="text-[14.5px] text-white/92">
                 — Imam Ahmad ibn Hanbal <span className="opacity-[0.72]">رحمه الله</span>,

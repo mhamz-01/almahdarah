@@ -18,11 +18,9 @@ export function AvatarPlaceholder({
 
   return (
     <div
-      className={`placeholder-avatar flex shrink-0 items-center justify-center rounded-full ${className}`}
+      className={`placeholder-avatar shrink-0 rounded-full ${className}`}
       style={{ ...style, width: size, height: size }}
       aria-hidden="true"
-    >
-      <span className="font-mono text-[8px] text-white/85">[ photo ]</span>
-    </div>
+    />
   );
 }

@@ -86,7 +86,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
         </LazySection>
 
         <LazySection fallback={<CourseSectionSkeleton rows={3} bordered />} minHeight={680}>
-          <CourseCurriculum modules={course.modules} />
+          <CourseCurriculum modules={course.modules} summaryOnly={course.type === "free"} />
         </LazySection>
 
         <LazySection fallback={<CourseSectionSkeleton rows={2} />} minHeight={480}>

@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { StarRating } from "@/components/ui/star-rating";
 import { AvatarPlaceholder } from "@/components/ui/avatar-placeholder";
+import { DiamondMark } from "@/components/ui/diamond-mark";
 import { JoinCommunityDialog } from "@/components/community/join-community-dialog";
 import { getBookingHref, getCourseCopy, getCourseCounts } from "@/lib/course-copy";
+import { accentGradientVars } from "@/lib/accent";
 
 interface CourseHeroProps {
   course: CourseDetail;
@@ -14,6 +16,7 @@ interface CourseHeroProps {
 export function CourseHero({ course }: CourseHeroProps) {
   const copy = getCourseCopy(course.type);
   const { moduleCountLine } = getCourseCounts(course);
+  const [gradientFrom, gradientTo] = accentGradientVars[course.accent];
 
   return (
     <section className="relative overflow-hidden">
@@ -107,19 +110,22 @@ export function CourseHero({ course }: CourseHeroProps) {
         <Reveal delay={220} className="relative">
           <div className="overflow-hidden rounded-[26px] border border-border bg-surface shadow-[var(--shadow-lg)]">
             <div
-              className="relative flex h-[220px] items-center justify-center overflow-hidden"
-              style={{ background: "linear-gradient(155deg, var(--primary) 0%, var(--primary-2) 100%)" }}
+              className="relative flex min-h-[220px] flex-col justify-center overflow-hidden px-7 py-8"
+              style={{ background: `linear-gradient(155deg, ${gradientFrom} 0%, ${gradientTo} 100%)` }}
             >
               <div className="bg-pattern pointer-events-none absolute inset-0 opacity-40" />
-              <button
-                type="button"
-                aria-label="Preview lesson"
-                className="relative flex h-[66px] w-[66px] items-center justify-center rounded-full bg-white/95 shadow-[var(--shadow-md)] transition-transform duration-200 hover:scale-[1.06]"
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-4 left-5 font-serif text-[92px] leading-none text-white/15"
               >
-                <span className="ml-1 border-y-[12px] border-l-[20px] border-y-transparent border-l-primary" />
-              </button>
-              <span className="absolute bottom-3.5 left-4 text-xs font-semibold text-white/85">
-                {copy.previewLine}
+                &ldquo;
+              </span>
+              <DiamondMark className="relative h-7 w-7" colorClassName="border-white/70" />
+              <p className="relative mt-4 max-w-[36ch] font-serif text-[clamp(17px,1.7vw,21px)] leading-[1.5] text-white italic">
+                &ldquo;{course.heroQuote}&rdquo;
+              </p>
+              <span className="relative mt-4 text-[11.5px] font-semibold tracking-[0.06em] text-white/75 uppercase">
+                {course.heroQuoteSource}
               </span>
             </div>
             <div className="flex flex-col gap-3.5 p-6">

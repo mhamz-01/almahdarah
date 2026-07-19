@@ -5,7 +5,7 @@ import { faculty } from "@/lib/data/faculty";
 
 export function Faculty() {
   return (
-    <section id="faculty" className="border-y border-border bg-surface-2">
+    <section id="faculty" className="scroll-mt-[88px] border-y border-border bg-surface-2">
       <div className="mx-auto max-w-[1240px] px-7 py-16 sm:py-20 lg:py-[104px]">
         <div className="max-w-[620px]">
           <Reveal>
@@ -21,7 +21,7 @@ export function Faculty() {
 
         <div className="mt-[42px] grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {faculty.map((member, i) => (
-            <Reveal key={member.name} delay={i * 80}>
+            <Reveal key={member.name} delay={i * 80} className="h-full">
               <FacultyCard {...member} />
             </Reveal>
           ))}

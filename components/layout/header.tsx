@@ -2,13 +2,14 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { SmoothNavLink } from "@/components/layout/smooth-nav-link";
 import { navLinks } from "@/lib/data/navigation";
 
 export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-bg/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between gap-6 px-7 py-[13px]">
-        <a href="#top" className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3">
           <Image
             src="/assets/almahdrah-logo.png"
             alt="Al-Mahdrah"
@@ -29,13 +30,13 @@ export function Header() {
 
         <nav className="hidden items-center gap-[30px] lg:flex">
           {navLinks.map((link) => (
-            <a
+            <SmoothNavLink
               key={link.href}
               href={link.href}
               className="text-sm font-semibold text-text transition-colors hover:text-green"
             >
               {link.label}
-            </a>
+            </SmoothNavLink>
           ))}
         </nav>
 

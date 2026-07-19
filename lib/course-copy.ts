@@ -12,7 +12,6 @@ export function getCourseCopy(type: CourseDetail["type"]) {
       ? "Free demo class — tuition arranged directly with your teacher afterward."
       : "Completely free to join — no card required, ever.",
     formatLine: isPaid ? "Live 1:1 sessions" : "Live community class",
-    previewLine: isPaid ? "Watch a 90-second preview" : "Sessions shared in the community",
     certLine: "Certificate on completion",
     trustLine: isPaid ? "Taught, never transactional" : "No sign-up friction",
     coursesAnchor: isPaid ? "/#courses" : "/#free",

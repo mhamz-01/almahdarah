@@ -8,15 +8,53 @@ import { getCourseCounts } from "@/lib/course-copy";
 
 interface CourseCurriculumProps {
   modules: CourseModule[];
+  /** Free courses show a count-only summary instead of a per-module lesson breakdown. */
+  summaryOnly?: boolean;
 }
 
-export function CourseCurriculum({ modules }: CourseCurriculumProps) {
+export function CourseCurriculum({ modules, summaryOnly = false }: CourseCurriculumProps) {
   const [openModules, setOpenModules] = useState<Record<number, boolean>>({ 0: true });
   const { moduleCountLine, lessonCountLine } = getCourseCounts({ modules });
 
   const toggle = (i: number) => {
     setOpenModules((prev) => ({ ...prev, [i]: !prev[i] }));
   };
+
+  if (summaryOnly) {
+    return (
+      <section id="curriculum" className="border-y border-border bg-surface-2">
+        <div className="mx-auto max-w-[900px] px-7 py-16 sm:py-20 lg:py-[96px]">
+          <Reveal>
+            <SectionHeading
+              eyebrow="Curriculum"
+              eyebrowClassName="text-primary-2"
+              eyebrowLineClassName="bg-primary-2"
+              title="See exactly what's inside"
+            />
+          </Reveal>
+
+          <Reveal delay={90}>
+            <div className="mt-9 grid grid-cols-2 overflow-hidden rounded-[18px] border border-border bg-surface">
+              <div className="flex flex-col items-center gap-1 border-r border-border px-6 py-8 text-center">
+                <span className="font-display text-[38px] leading-none text-primary-2">{modules.length}</span>
+                <span className="text-[13px] font-semibold text-muted">
+                  {modules.length === 1 ? "Module" : "Modules"}
+                </span>
+              </div>
+              <div className="flex flex-col items-center gap-1 px-6 py-8 text-center">
+                <span className="font-display text-[38px] leading-none text-primary-2">
+                  {modules.reduce((total, mod) => total + mod.lessons.length, 0)}
+                </span>
+                <span className="text-[13px] font-semibold text-muted">
+                  {modules.reduce((total, mod) => total + mod.lessons.length, 0) === 1 ? "Lesson" : "Lessons"}
+                </span>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="curriculum" className="border-y border-border bg-surface-2">
