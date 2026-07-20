@@ -5,7 +5,7 @@ import { faculty } from "@/lib/data/faculty";
 
 export function Faculty() {
   return (
-    <section id="faculty" className="scroll-mt-[88px] border-y border-border bg-surface-2">
+    <section className="border-y border-border bg-surface-2">
       <div className="mx-auto max-w-[1240px] px-7 py-16 sm:py-20 lg:py-[104px]">
         <div className="max-w-[620px]">
           <Reveal>

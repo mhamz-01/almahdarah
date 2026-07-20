@@ -5,10 +5,7 @@ import { mentoredCourses } from "@/lib/data/courses";
 
 export function PaidCourses() {
   return (
-    <section
-      id="courses"
-      className="scroll-mt-[88px] border-y border-border bg-surface-2"
-    >
+    <section className="border-y border-border bg-surface-2">
       <div className="mx-auto max-w-[1240px] px-7 py-16 sm:py-20 lg:py-[104px]">
         <div className="flex flex-wrap items-end justify-between gap-[18px]">
           <div className="max-w-[600px]">

@@ -24,7 +24,7 @@ export default function Home() {
       <main>
         <Hero />
 
-        <LazySection fallback={<VisionSkeleton />} minHeight={700}>
+        <LazySection id="vision" fallback={<VisionSkeleton />} minHeight={700}>
           <Vision />
         </LazySection>
 
@@ -32,7 +32,7 @@ export default function Home() {
           <Trust />
         </LazySection>
 
-        <LazySection fallback={<PaidCoursesSkeleton />} minHeight={800}>
+        <LazySection id="courses" fallback={<PaidCoursesSkeleton />} minHeight={800}>
           <PaidCourses />
         </LazySection>
 
@@ -40,7 +40,7 @@ export default function Home() {
           <FreeCourses />
         </LazySection>
 
-        <LazySection fallback={<FacultySkeleton />} minHeight={600}>
+        <LazySection id="faculty" fallback={<FacultySkeleton />} minHeight={600}>
           <Faculty />
         </LazySection>
 

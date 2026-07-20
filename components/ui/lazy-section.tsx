@@ -7,6 +7,8 @@ interface LazySectionProps {
   fallback: ReactNode;
   rootMargin?: string;
   minHeight?: number;
+  id?: string;
+  className?: string;
 }
 
 /**
@@ -19,6 +21,8 @@ export function LazySection({
   fallback,
   rootMargin = "200px 0px",
   minHeight,
+  id,
+  className,
 }: LazySectionProps) {
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -43,7 +47,12 @@ export function LazySection({
   }, [visible, rootMargin]);
 
   return (
-    <div ref={ref} style={minHeight && !visible ? { minHeight } : undefined}>
+    <div
+      ref={ref}
+      id={id}
+      className={id ? `scroll-mt-[88px] ${className ?? ""}`.trim() : className}
+      style={minHeight && !visible ? { minHeight } : undefined}
+    >
       {visible ? children : fallback}
     </div>
   );
