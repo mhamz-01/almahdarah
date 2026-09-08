@@ -19,3 +19,4 @@ create policy "Deny anon access to students"
   to anon
   using (false)
   with check (false);
+-- test
