@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import type { ReviewRow } from "@/lib/types";
+import { toQuoteEntry } from "@/lib/quotes";
+import type { QuoteRow, ReviewRow } from "@/lib/types";
 
 export function createSupabaseServerClient() {
   return createClient(
@@ -50,4 +51,18 @@ export async function getPublishedReviews() {
     .order("created_at", { ascending: false })
     .limit(200)
     .returns<ReviewRow[]>();
+}
+
+// Uses the anon key, so row-level security only ever returns published quotes here.
+export async function getPublishedQuotes() {
+  const supabase = createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("quotes")
+    .select("*")
+    .eq("published", true)
+    .order("published_at", { ascending: false })
+    .order("id", { ascending: false })
+    .returns<QuoteRow[]>();
+
+  return { data: data ? data.map(toQuoteEntry) : null, error };
 }

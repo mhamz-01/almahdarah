@@ -217,3 +217,168 @@ export interface CourseDetail {
   steps: CourseStep[];
   faqs: CourseFaq[];
 }
+
+export interface QuoteEntry {
+  id: number;
+  topicKey: string;
+  type: "quote" | "passage";
+  title?: string;
+  text: string;
+  author: string;
+  publishedAt: string | null;
+}
+
+export interface QuoteRow {
+  id: number;
+  created_at: string;
+  published_at: string | null;
+  topic_key: string;
+  kind: "quote" | "passage";
+  title: string | null;
+  body: string;
+  author: string;
+  published: boolean;
+}
+
+export interface QuoteInsert {
+  topic_key: string;
+  kind: "quote" | "passage";
+  title: string | null;
+  body: string;
+  author: string;
+  published: boolean;
+}
+
+export type Weekday = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday";
+export type SlotStatus = "scheduled" | "cancelled" | "rescheduled";
+
+export interface ClassScheduleRow {
+  id: number;
+  day: Weekday;
+  subject: string;
+  start_time: string;
+  duration: string;
+  teacher: string;
+  color: string;
+  status: SlotStatus;
+  note: string;
+  sort_order: number;
+  updated_at: string;
+  published_at: string | null;
+}
+
+export interface ClassScheduleUpdate {
+  subject?: string;
+  start_time?: string;
+  duration?: string;
+  teacher?: string;
+  status?: SlotStatus;
+  note?: string;
+}
+
+export interface ClassScheduleInsert {
+  day: Weekday;
+  subject: string;
+  start_time: string;
+  duration: string;
+  teacher: string;
+  color: string;
+  status: SlotStatus;
+  note: string;
+}
+
+export interface StudentRow {
+  id: number;
+  created_at: string;
+  name: string;
+  username: string;
+  level: string;
+  avatar_color: string;
+}
+
+export interface StudentInsert {
+  name: string;
+  username: string;
+  level: string;
+  avatar_color: string;
+}
+
+export type AttendanceStatus = "present" | "absent";
+
+export interface AttendanceRow {
+  id: number;
+  student_id: number;
+  class_date: string;
+  day: Weekday;
+  status: AttendanceStatus;
+  created_at: string;
+}
+
+export interface StudentNoteInsert {
+  student_id: number;
+  body: string;
+}
+
+export interface AttendanceCell {
+  day: Weekday;
+  status: AttendanceStatus | null;
+}
+
+export interface AttendanceWeek {
+  range: string;
+  startDate: string;
+  cells: AttendanceCell[];
+}
+
+export interface StudentWithStats extends StudentRow {
+  streak: number;
+  missedTotal: number;
+  attendedThisWeek: number;
+  lastMissed: string;
+  weeks: AttendanceWeek[];
+}
+
+// Full DB row, including auth fields — never pass this to a client
+// component as-is. Used only inside login/credential-generation routes.
+export interface StudentAuthRow extends StudentRow {
+  password_hash: string | null;
+  last_login_at: string | null;
+}
+
+// Client-safe login status, derived server-side from StudentAuthRow.
+export interface StudentWithLoginStatus extends StudentWithStats {
+  hasLogin: boolean;
+  lastLoginAt: string | null;
+}
+
+export interface StudentNoteRow {
+  id: number;
+  student_id: number;
+  body: string;
+  created_at: string;
+  read: boolean;
+}
+
+export interface TaskRow {
+  id: number;
+  created_at: string;
+  subject: string;
+  title: string;
+  description: string;
+  due_date: string | null;
+  attachment_url: string | null;
+  attachment_name: string | null;
+  attachment_path: string | null;
+}
+
+export interface TaskInsert {
+  subject: string;
+  title: string;
+  description: string;
+  due_date: string | null;
+  attachment_url: string | null;
+  attachment_name: string | null;
+  attachment_path: string | null;
+}
+
+export type TaskUpdate = Partial<TaskInsert>;

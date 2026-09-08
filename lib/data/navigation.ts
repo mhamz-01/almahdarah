@@ -5,5 +5,6 @@ export const navLinks: NavLink[] = [
   { label: "Courses", href: "/#courses" },
   { label: "Faculty", href: "/#faculty" },
   { label: "Reviews", href: "/reviews" },
+  { label: "Quotes", href: "/quotes" },
   // { label: "Journal", href: "/#blog" }, // hidden for now
 ];
