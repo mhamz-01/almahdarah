@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AddStudentModal } from "@/components/admin/students/add-student-modal";
+import { EditStudentModal } from "@/components/admin/students/edit-student-modal";
 import { computeStudentStats } from "@/lib/students";
 import type { StudentRow, StudentWithLoginStatus } from "@/lib/types";
 
@@ -47,10 +48,9 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [generating, setGenerating] = useState(false);
-  const [credentialError, setCredentialError] = useState<string | null>(null);
-  const [revealedCredential, setRevealedCredential] = useState<{ studentId: number; username: string; password: string } | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [editTarget, setEditTarget] = useState<StudentWithLoginStatus | null>(null);
 
   const [addOpen, setAddOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<StudentWithLoginStatus | null>(null);
@@ -66,9 +66,8 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
     setNote("");
     setSent(false);
     setError(null);
-    setCredentialError(null);
     setCopied(false);
-    setRevealedCredential((prev) => (prev?.studentId === id ? prev : null));
+    setShowPassword(false);
   }
 
   async function sendNote() {
@@ -92,40 +91,28 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
     }
   }
 
-  async function generateLogin() {
-    if (!selected) return;
-    setGenerating(true);
-    setCredentialError(null);
-    setCopied(false);
-    try {
-      const res = await fetch(`/api/admin/students/${selected.id}/credentials`, { method: "POST" });
-      const json = (await res.json()) as { ok: boolean; username?: string; password?: string; error?: string };
-      if (!res.ok || !json.ok || !json.username || !json.password) {
-        throw new Error(json.error ?? "Request failed");
-      }
-      setRevealedCredential({ studentId: selected.id, username: json.username, password: json.password });
-      setStudents((prev) => prev.map((s) => (s.id === selected.id ? { ...s, hasLogin: true } : s)));
-    } catch (e) {
-      setCredentialError(e instanceof Error ? e.message : "Couldn't generate a login");
-    } finally {
-      setGenerating(false);
-    }
-  }
-
   async function copyCredential() {
-    if (!revealedCredential) return;
+    if (!selected || selected.password === null) return;
     try {
-      await navigator.clipboard.writeText(`Username: ${revealedCredential.username}\nPassword: ${revealedCredential.password}`);
+      await navigator.clipboard.writeText(`Username: ${selected.username}
+Password: ${selected.password}`);
       setCopied(true);
     } catch {
       // clipboard access denied — the admin can still select and copy the text manually
     }
   }
 
-  function handleCreated(student: StudentRow) {
+  function handleEdited(updated: { id: number; name: string; username: string; password: string | null }) {
+    setStudents((prev) =>
+      prev.map((s) => (s.id === updated.id ? { ...s, name: updated.name, username: updated.username, password: updated.password, hasLogin: true } : s)),
+    );
+  }
+
+  function handleCreated(student: StudentRow, password: string) {
     const withStats: StudentWithLoginStatus = {
       ...computeStudentStats(student, [], new Date()),
-      hasLogin: false,
+      hasLogin: true,
+      password,
       lastLoginAt: null,
     };
     setStudents((prev) => [withStats, ...prev]);
@@ -298,10 +285,10 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
                     <td className="px-4 py-3.5">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                          student.hasLogin ? "bg-green/15 text-green" : "bg-surface-2 text-muted"
+                          student.lastLoginAt ? "bg-green/15 text-green" : "bg-surface-2 text-muted"
                         }`}
                       >
-                        {student.hasLogin ? "Active" : "Not set up"}
+                        {student.lastLoginAt ? "Active" : "No sign-in yet"}
                       </span>
                     </td>
                   </tr>
@@ -331,7 +318,7 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
             <div>
               <div className="text-[15px] font-bold text-ink">{selected.name}</div>
               <div className="font-mono text-[11.5px] text-muted">
-                {selected.username} · {selected.level}
+                {selected.username}
               </div>
             </div>
           </div>
@@ -384,45 +371,59 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
             </div>
           </div>
 
+          {(selected.email || selected.phone) && (
+            <div className="mt-4 flex flex-col gap-1.5 border-t border-border pt-4 text-[13px]">
+              <span className="text-[12px] font-bold text-ink">Contact</span>
+              {selected.email && <span className="break-all text-text">✉ {selected.email}</span>}
+              {selected.phone && <span className="text-text">☎ {selected.phone}</span>}
+            </div>
+          )}
+
           <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
             <label className="text-[12px] font-bold text-ink">Portal login</label>
-            <p className="text-[12px] text-muted">
-              {selected.hasLogin
-                ? `Active${selected.lastLoginAt ? ` · last signed in ${formatDate(selected.lastLoginAt)}` : " · never signed in yet"}`
-                : "No login generated yet — the student can't sign in to the portal."}
-            </p>
-            {credentialError && <p className="text-[12.5px] font-semibold text-red-600">{credentialError}</p>}
-            <button
-              type="button"
-              onClick={generateLogin}
-              disabled={generating}
-              className="h-10 rounded-lg border-[1.5px] border-border-strong bg-surface text-[13px] font-bold text-text transition-colors hover:border-primary hover:text-ink disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {generating ? "Generating…" : selected.hasLogin ? "Reset password" : "Generate login"}
-            </button>
-
-            {revealedCredential && revealedCredential.studentId === selected.id && (
-              <div className="mt-1 rounded-lg border-[1.5px] border-gold/50 bg-gold/10 p-3.5">
-                <p className="text-[11.5px] font-bold text-[#8a6b12]">
-                  Share this with the student now — it won&apos;t be shown again.
-                </p>
-                <div className="mt-2.5 flex flex-col gap-1 font-mono text-[13px] text-ink">
-                  <span>
-                    Username: <span className="font-bold">{revealedCredential.username}</span>
-                  </span>
-                  <span>
-                    Password: <span className="font-bold">{revealedCredential.password}</span>
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={copyCredential}
-                  className="mt-2.5 h-8 rounded-md border-[1.5px] border-[#8a6b12]/40 bg-transparent px-3 text-[12px] font-bold text-[#8a6b12] transition-colors hover:border-[#8a6b12]"
-                >
-                  {copied ? "✓ Copied" : "Copy username & password"}
-                </button>
+            <div className="rounded-lg border border-border bg-bg p-3.5 font-mono text-[13px] text-ink">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-muted">Username</span>
+                <span className="font-bold">{selected.username}</span>
               </div>
-            )}
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <span className="text-muted">Password</span>
+                {selected.password !== null ? (
+                  <span className="flex items-center gap-2">
+                    <span className="font-bold">{showPassword ? selected.password : "••••••••"}</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="font-sans text-[11.5px] font-bold text-primary"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </span>
+                ) : (
+                  <span className="font-sans text-[11.5px] text-muted">Not viewable — set a new one</span>
+                )}
+              </div>
+            </div>
+            <p className="text-[12px] text-muted">
+              {selected.lastLoginAt ? `Last signed in ${formatDate(selected.lastLoginAt)}` : "Hasn't signed in yet"}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setEditTarget(selected)}
+                className="h-10 flex-1 rounded-lg border-[1.5px] border-border-strong bg-surface text-[13px] font-bold text-text transition-colors hover:border-primary hover:text-ink"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={copyCredential}
+                disabled={selected.password === null}
+                className="h-10 flex-1 rounded-lg border-[1.5px] border-border-strong bg-surface text-[13px] font-bold text-text transition-colors hover:border-primary hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {copied ? "✓ Copied" : "Copy login"}
+              </button>
+            </div>
           </div>
 
           <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
@@ -461,6 +462,11 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
       </div>
 
       <AddStudentModal open={addOpen} onOpenChange={setAddOpen} onCreated={handleCreated} />
+      <EditStudentModal
+        student={editTarget}
+        onOpenChange={(open) => !open && setEditTarget(null)}
+        onSaved={handleEdited}
+      />
       {deleteDialog}
     </div>
   );

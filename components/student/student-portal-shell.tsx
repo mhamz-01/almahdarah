@@ -13,10 +13,10 @@ interface WeekMiniItem {
 }
 
 interface StudentPortalShellProps {
-  student: { name: string; username: string; level: string; avatarColor: string };
+  student: { name: string; username: string; avatarColor: string };
   streak: number;
   streakNote: string;
-  weekMini: WeekMiniItem[];
+  weekMini?: WeekMiniItem[];
   unreadCount: number;
   children: React.ReactNode;
 }
@@ -24,10 +24,24 @@ interface StudentPortalShellProps {
 const NAV_ITEMS = [
   { href: "/student", num: "01", label: "Home" },
   { href: "/student/tasks", num: "02", label: "Tasks" },
-  { href: "/student/attendance", num: "03", label: "Attendance" },
-  { href: "/student/notifications", num: "04", label: "Notifications", withBadge: true },
-  { href: "/student/punch", num: "05", label: "Punch today's class" },
+  { href: "/student/courses", num: "03", label: "Courses" },
+  { href: "/student/attendance", num: "04", label: "Attendance" },
+  { href: "/student/notifications", num: "05", label: "Notifications", withBadge: true },
+  { href: "/student/punch", num: "06", label: "Punch today's class" },
 ];
+
+function Collapse({ open, children }: { open: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+        open ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+      }`}
+      aria-hidden={!open}
+    >
+      <div className="min-h-0 overflow-hidden">{children}</div>
+    </div>
+  );
+}
 
 function initialsFor(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -38,7 +52,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function StudentPortalShell({ student, streak, streakNote, weekMini, unreadCount, children }: StudentPortalShellProps) {
+export function StudentPortalShell({ student, streak, streakNote, unreadCount, children }: StudentPortalShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -77,24 +91,28 @@ export function StudentPortalShell({ student, streak, streakNote, weekMini, unre
   const streakDots = Array.from({ length: 8 }, (_, i) => i >= 8 - Math.min(streak, 8));
 
   return (
-    <div className="grid min-h-screen" style={{ gridTemplateColumns: isNarrow ? "1fr" : collapsed ? "86px 1fr" : "308px 1fr" }}>
-      {isNarrow && mobileOpen && (
+    <div className="grid min-h-screen" style={{
+        gridTemplateColumns: isNarrow ? "1fr" : collapsed ? "72px 1fr" : "288px 1fr",
+        transition: "grid-template-columns 300ms ease-in-out",
+      }}>
+      {isNarrow && (
         <div
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-[65] bg-black/50 backdrop-blur-[2px]"
+          className={`fixed inset-0 z-[65] bg-black/50 backdrop-blur-[2px] transition-opacity duration-300 ${
+            mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
         />
       )}
 
       <aside
-        className={`${isNarrow && !mobileOpen ? "hidden" : "flex"} h-screen flex-col gap-[26px] overflow-y-auto overflow-x-hidden border-r border-border bg-surface py-[26px] ${
+        className={`thin-scroll flex h-screen flex-col gap-5 overflow-y-auto overflow-x-hidden border-r border-border bg-surface py-5 whitespace-nowrap transition-[transform,padding] duration-300 ease-in-out ${
           isNarrow
-            ? `fixed inset-y-0 left-0 z-[70] w-[280px] shadow-[var(--shadow-lg)] transition-transform ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
+            ? `fixed inset-y-0 left-0 z-[70] w-[288px] shadow-[var(--shadow-lg)] ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
             : "sticky top-0"
-        } ${isNarrow || !collapsed ? "px-[22px]" : "px-4"}`}
+        } ${isNarrow || !collapsed ? "px-4" : "px-3"}`}
       >
-        <div className={`flex items-center gap-[11px] ${sidebarOpen ? "justify-between" : "justify-center"}`}>
-          {sidebarOpen && (
-            <div className="flex items-center gap-[11px]">
+        <div className={`flex items-center ${sidebarOpen ? "justify-between gap-[11px]" : "justify-center"}`}>
+          <div className={`flex items-center gap-[11px] overflow-hidden transition-[max-width,opacity] duration-300 ease-in-out ${sidebarOpen ? "max-w-[200px] opacity-100" : "max-w-0 opacity-0"}`}>
               <Image
                 src="/assets/almahdrah-logo.png"
                 alt="Al-Mahdrah"
@@ -106,8 +124,7 @@ export function StudentPortalShell({ student, streak, streakNote, weekMini, unre
                 <span className="font-display text-[14px] text-ink">AL-MAHDRAH</span>
                 <span className="font-mono text-[10px] tracking-[0.16em] text-muted uppercase">Student portal</span>
               </span>
-            </div>
-          )}
+          </div>
           <button
             type="button"
             onClick={() => (isNarrow ? setMobileOpen(false) : setCollapsed((c) => !c))}
@@ -118,8 +135,8 @@ export function StudentPortalShell({ student, streak, streakNote, weekMini, unre
           </button>
         </div>
 
-        {sidebarOpen && (
-          <div className="flex items-center gap-3 rounded-[3px] border border-border bg-bg p-3.5">
+        <Collapse open={sidebarOpen}>
+          <div className="flex items-center gap-3 rounded-[3px] border border-border bg-bg p-3">
             <span
               className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full font-display text-[15px] text-white"
               style={{ background: student.avatarColor }}
@@ -129,16 +146,16 @@ export function StudentPortalShell({ student, streak, streakNote, weekMini, unre
             <span className="flex min-w-0 flex-col leading-[1.35]">
               <span className="truncate text-[14px] font-bold text-ink">{student.name}</span>
               <span className="font-mono text-[11px] text-muted">
-                {student.username} · {student.level}
+                {student.username}
               </span>
             </span>
           </div>
-        )}
+        </Collapse>
 
         <nav className="flex flex-col gap-1">
-          {sidebarOpen && (
-            <span className="mb-2 text-[11px] font-bold tracking-[0.16em] text-muted uppercase">Menu</span>
-          )}
+          <Collapse open={sidebarOpen}>
+            <span className="mb-2 block text-[11px] font-bold tracking-[0.16em] text-muted uppercase">Menu</span>
+          </Collapse>
           {NAV_ITEMS.map((item) => {
             const active = isActive(pathname, item.href);
             const badge = item.withBadge && unreadCount > 0 ? unreadCount : null;
@@ -147,14 +164,14 @@ export function StudentPortalShell({ student, streak, streakNote, weekMini, unre
                 key={item.href}
                 href={item.href}
                 title={item.label}
-                className={`flex w-full items-center gap-3 rounded-[3px] border py-[13px] text-[14px] transition-colors hover:border-border-strong ${
-                  sidebarOpen ? "px-[14px]" : "justify-center px-0"
+                className={`relative flex w-full items-center rounded-[3px] border py-[13px] text-[14px] transition-colors hover:border-border-strong ${
+                  sidebarOpen ? "gap-3 px-[14px]" : "justify-center px-0"
                 } ${active ? "border-border-strong bg-bg font-bold text-ink" : "border-transparent font-medium text-text"}`}
               >
                 <span className="font-mono text-[11px] opacity-65">{item.num}</span>
-                {sidebarOpen && <span className="flex-1">{item.label}</span>}
+                <span className={`overflow-hidden transition-[max-width,opacity] duration-300 ease-in-out ${sidebarOpen ? "max-w-[180px] flex-1 opacity-100" : "max-w-0 opacity-0"}`}>{item.label}</span>
                 {badge !== null && (
-                  <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-600 px-1.5 font-mono text-[10.5px] text-white">
+                  <span className={`flex shrink-0 items-center justify-center rounded-full bg-red-600 font-mono text-white ${sidebarOpen ? "h-5 min-w-5 px-1.5 text-[10.5px]" : "absolute top-1 right-1 h-4 min-w-4 px-1 text-[9px]"}`}>
                     {badge}
                   </span>
                 )}
@@ -163,8 +180,8 @@ export function StudentPortalShell({ student, streak, streakNote, weekMini, unre
           })}
         </nav>
 
-        {sidebarOpen && (
-          <>
+        <Collapse open={sidebarOpen}>
+          <div className="flex flex-col gap-5">
             <div className="rounded-[3px] border border-border-strong bg-mint p-4">
               <div className="text-[11px] font-bold tracking-[0.14em] text-primary-2 uppercase">Current streak</div>
               <div className="mt-2.5 flex items-baseline gap-2">
@@ -183,19 +200,8 @@ export function StudentPortalShell({ student, streak, streakNote, weekMini, unre
               <div className="mt-2.5 font-mono text-[10.5px] text-muted">{streakNote}</div>
             </div>
 
-            <div className="rounded-[3px] border border-border bg-bg p-4">
-              <div className="text-[11px] font-bold tracking-[0.14em] text-muted uppercase">This week</div>
-              <div className="mt-3 flex flex-col gap-2.5">
-                {weekMini.map((m) => (
-                  <div key={m.key} className="flex items-center justify-between gap-2.5">
-                    <span className="text-[13px] text-text">{m.subject}</span>
-                    <span className={`text-[11.5px] font-bold ${m.colorClass}`}>{m.mark}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
+          </div>
+        </Collapse>
 
         <button
           type="button"

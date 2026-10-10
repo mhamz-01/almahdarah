@@ -50,11 +50,18 @@ export function computeStudentStats(
   const joinMonday = startOfWeekMonday(new Date(student.created_at));
   const weekStarts = buildWeekStarts(referenceDate, 5).filter((monday) => monday.getTime() >= joinMonday.getTime());
 
+  // A past class day the student never punched counts as absent. It only
+  // applies from the join date onward, and never to today or the future.
+  const todayIso = toISODate(referenceDate);
+  const joinIso = student.created_at.slice(0, 10);
+
   const weeks: AttendanceWeek[] = weekStarts.map((monday, weekIndex) => {
-    const cells: AttendanceCell[] = WEEKDAYS.map((day, dayIndex) => ({
-      day,
-      status: statusByDate.get(toISODate(addDays(monday, dayIndex))) ?? null,
-    }));
+    const cells: AttendanceCell[] = WEEKDAYS.map((day, dayIndex) => {
+      const iso = toISODate(addDays(monday, dayIndex));
+      const recorded = statusByDate.get(iso);
+      if (recorded) return { day, status: recorded };
+      return { day, status: iso < todayIso && iso >= joinIso ? "absent" : null };
+    });
     return { range: weekIndex === 0 ? "This week" : formatWeekRange(monday), startDate: toISODate(monday), cells };
   });
 

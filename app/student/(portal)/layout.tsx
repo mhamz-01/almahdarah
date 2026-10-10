@@ -47,7 +47,7 @@ export default async function StudentPortalLayout({ children }: { children: Reac
 
   return (
     <StudentPortalShell
-      student={{ name: student.name, username: student.username, level: student.level, avatarColor: student.avatar_color }}
+      student={{ name: student.name, username: student.username, avatarColor: student.avatar_color }}
       streak={stats.streak}
       streakNote={streakNote}
       weekMini={weekMini}

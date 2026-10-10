@@ -137,6 +137,24 @@ body {
   display: none;
 }
 
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, currentColor 25%, transparent) transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 999px;
+}
+
 .animate-sway {
   animation: sway var(--sway-duration, 4s) ease-in-out infinite;
   animation-delay: var(--sway-delay, 0s);

@@ -49,6 +49,11 @@ export default function StudentLoginPage() {
           <StudentLoginForm />
 
           <div className="mt-7 border-t border-border pt-[22px] text-[13px] leading-[1.7] text-muted">
+            No account yet?{" "}
+            <Link href="/student/request-access" className="font-bold text-primary">
+              Request portal access →
+            </Link>
+            <br />
             Not enrolled yet?{" "}
             <Link href="/book-a-demo" className="font-bold text-primary">
               Book a free demo class →

@@ -12,13 +12,14 @@ const AVATAR_COLORS = ["#1182A3", "#2B7977", "#25345D", "#3E9E54", "#8a6b12", "#
 interface AddStudentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (student: StudentRow) => void;
+  onCreated: (student: StudentRow, password: string) => void;
 }
 
 export function AddStudentModal({ open, onOpenChange, onCreated }: AddStudentModalProps) {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
-  const [level, setLevel] = useState("Level 1");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(true);
   const [avatarColor, setAvatarColor] = useState(AVATAR_COLORS[0]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export function AddStudentModal({ open, onOpenChange, onCreated }: AddStudentMod
   function reset() {
     setName("");
     setUsername("");
-    setLevel("Level 1");
+    setPassword("");
     setAvatarColor(AVATAR_COLORS[0]);
     setError(null);
   }
@@ -36,7 +37,7 @@ export function AddStudentModal({ open, onOpenChange, onCreated }: AddStudentMod
     onOpenChange(next);
   }
 
-  const isValid = Boolean(name.trim() && username.trim() && level.trim());
+  const isValid = Boolean(name.trim() && username.trim() && password.length >= 6);
 
   async function handleSubmit() {
     if (!isValid) return;
@@ -49,13 +50,13 @@ export function AddStudentModal({ open, onOpenChange, onCreated }: AddStudentMod
         body: JSON.stringify({
           name: name.trim(),
           username: username.trim(),
-          level: level.trim(),
+          password,
           avatar_color: avatarColor,
         }),
       });
-      const json = (await res.json()) as { ok: boolean; student?: StudentRow; error?: string };
+      const json = (await res.json()) as { ok: boolean; student?: StudentRow; password?: string; error?: string };
       if (!res.ok || !json.ok || !json.student) throw new Error(json.error ?? "Request failed");
-      onCreated(json.student);
+      onCreated(json.student, password);
       reset();
       onOpenChange(false);
     } catch (e) {
@@ -70,7 +71,7 @@ export function AddStudentModal({ open, onOpenChange, onCreated }: AddStudentMod
       <DialogContent>
         <DialogTitle>Add a student</DialogTitle>
         <DialogDescription>
-          They&apos;ll appear in the roster right away — generate a portal login for them whenever you&apos;re ready.
+          You choose the username and password. They can sign in to the portal as soon as you add them.
         </DialogDescription>
 
         <div className="mt-5 flex flex-col gap-4">
@@ -97,14 +98,24 @@ export function AddStudentModal({ open, onOpenChange, onCreated }: AddStudentMod
           </label>
 
           <label className="flex flex-col gap-[7px]">
-            <span className="text-[13px] font-bold text-ink">Level</span>
-            <input
-              value={level}
-              onChange={(e) => setLevel(e.target.value)}
-              type="text"
-              placeholder="Level 1"
-              className={inputClasses}
-            />
+            <span className="text-[13px] font-bold text-ink">Password</span>
+            <span className="relative block">
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type={showPassword ? "text" : "password"}
+                autoComplete="new-password"
+                placeholder="At least 6 characters"
+                className={`${inputClasses} w-full pr-16 font-mono`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-[12px] font-bold text-primary"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </span>
           </label>
 
           <div className="flex flex-col gap-[7px]">

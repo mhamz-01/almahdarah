@@ -292,14 +292,14 @@ export interface StudentRow {
   created_at: string;
   name: string;
   username: string;
-  level: string;
   avatar_color: string;
+  email: string | null;
+  phone: string | null;
 }
 
 export interface StudentInsert {
   name: string;
   username: string;
-  level: string;
   avatar_color: string;
 }
 
@@ -342,12 +342,16 @@ export interface StudentWithStats extends StudentRow {
 // component as-is. Used only inside login/credential-generation routes.
 export interface StudentAuthRow extends StudentRow {
   password_hash: string | null;
+  password_enc: string | null;
   last_login_at: string | null;
 }
 
 // Client-safe login status, derived server-side from StudentAuthRow.
 export interface StudentWithLoginStatus extends StudentWithStats {
   hasLogin: boolean;
+  // Decrypted server-side for the admin panel only. Null when the login
+  // predates viewable passwords (hash only) or can't be decrypted.
+  password: string | null;
   lastLoginAt: string | null;
 }
 
@@ -382,3 +386,96 @@ export interface TaskInsert {
 }
 
 export type TaskUpdate = Partial<TaskInsert>;
+
+export interface StudentTaskAttachment {
+  url: string;
+  name: string;
+  path: string;
+}
+
+export interface StudentTaskRow {
+  id: number;
+  student_id: number;
+  created_at: string;
+  subject: string | null;
+  title: string;
+  description: string;
+  due_date: string | null;
+  completed: boolean;
+  attachments: StudentTaskAttachment[];
+}
+
+export type BoardStatus = "todo" | "in_progress" | "done";
+
+export interface BoardCardRow {
+  id: number;
+  student_id: number;
+  personal_task_id: number | null;
+  assigned_task_id: number | null;
+  status: BoardStatus;
+  created_at: string;
+  moved_at: string;
+}
+
+export type StudentRequestStatus = "pending" | "accepted" | "rejected";
+
+// Full DB row — password_hash / password_enc must never reach the client.
+export interface StudentRequestRow {
+  id: number;
+  created_at: string;
+  name: string;
+  username: string;
+  password_hash: string;
+  password_enc: string;
+  email: string | null;
+  phone: string | null;
+  time_at_almahdrah: string;
+  expectations: string;
+  status: StudentRequestStatus;
+  reviewed_at: string | null;
+  student_id: number | null;
+}
+
+// Client-safe view of a request, including the password the applicant chose
+// (decrypted server-side) so the admin can see exactly what they'd be approving.
+export interface StudentRequestView {
+  id: number;
+  created_at: string;
+  name: string;
+  username: string;
+  password: string | null;
+  email: string | null;
+  phone: string | null;
+  time_at_almahdrah: string;
+  expectations: string;
+  status: StudentRequestStatus;
+  reviewed_at: string | null;
+}
+
+export interface CourseRow {
+  id: number;
+  created_at: string;
+  title: string;
+  description: string;
+  instructor: string;
+  youtube_playlist_id: string | null;
+  thumbnail_url: string | null;
+  sort_order: number;
+  published: boolean;
+}
+
+export interface CourseLessonRow {
+  id: number;
+  course_id: number;
+  position: number;
+  title: string;
+  youtube_video_id: string;
+}
+
+export interface LessonProgressRow {
+  student_id: number;
+  lesson_id: number;
+  last_position_seconds: number;
+  completed: boolean;
+  updated_at: string;
+}
