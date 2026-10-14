@@ -470,6 +470,32 @@ export interface CourseLessonRow {
   position: number;
   title: string;
   youtube_video_id: string;
+  duration_seconds: number | null;
+  created_at: string;
+}
+
+export type LessonNoteStatus = "transcribing" | "composing" | "ready" | "failed";
+
+export interface LessonNoteRow {
+  lesson_id: number;
+  status: LessonNoteStatus;
+  segments_total: number;
+  error: string | null;
+  draft_md: string | null;
+  published_md: string | null;
+  generated_at: string | null;
+  published_at: string | null;
+  has_unpublished_changes: boolean;
+  updated_at: string;
+}
+
+export interface LessonTranscriptSegmentRow {
+  lesson_id: number;
+  idx: number;
+  start_seconds: number;
+  end_seconds: number;
+  text: string;
+  created_at: string;
 }
 
 export interface LessonProgressRow {

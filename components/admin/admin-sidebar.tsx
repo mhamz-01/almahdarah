@@ -82,6 +82,20 @@ function StudentsIcon({ className }: { className?: string }) {
   );
 }
 
+function NotesIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M5.25 4.75A1.5 1.5 0 0 1 6.75 3.25h8.5l3.5 3.5v12a1.5 1.5 0 0 1-1.5 1.5H6.75a1.5 1.5 0 0 1-1.5-1.5v-14Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M8.75 10.5h6.5M8.75 13.75h6.5M8.75 17h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function MenuIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
@@ -107,6 +121,7 @@ const academyLinks: NavLink[] = [
   { href: "/admin/schedule", label: "Class schedule", icon: ScheduleIcon },
   { href: "/admin/tasks", label: "Tasks", icon: TasksIcon },
   { href: "/admin/students", label: "Students", icon: StudentsIcon },
+  { href: "/admin/courses", label: "Lecture notes", icon: NotesIcon },
 ];
 
 function isActive(pathname: string, href: string) {

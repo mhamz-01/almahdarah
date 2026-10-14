@@ -2,64 +2,23 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CourseLessonRow, LessonProgressRow } from "@/lib/types";
-
-interface YTPlayer {
-  loadVideoById: (opts: { videoId: string; startSeconds?: number }) => void;
-  getCurrentTime: () => number;
-  destroy: () => void;
-}
-
-interface YTNamespace {
-  Player: new (
-    el: HTMLElement,
-    opts: {
-      videoId: string;
-      playerVars?: Record<string, number | string>;
-      events?: {
-        onReady?: () => void;
-        onStateChange?: (e: { data: number }) => void;
-      };
-    },
-  ) => YTPlayer;
-}
-
-declare global {
-  interface Window {
-    YT?: YTNamespace;
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
+import { loadYouTubeApi, type YTPlayer } from "@/lib/youtube-iframe";
+import { LectureNotes } from "@/components/notes/lecture-notes";
 
 // Player states from the IFrame API.
 const STATE_ENDED = 0;
 const STATE_PLAYING = 1;
 const STATE_PAUSED = 2;
 
-let apiPromise: Promise<YTNamespace> | null = null;
-function loadYouTubeApi(): Promise<YTNamespace> {
-  if (window.YT?.Player) return Promise.resolve(window.YT);
-  if (!apiPromise) {
-    apiPromise = new Promise((resolve) => {
-      const prev = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        prev?.();
-        resolve(window.YT as YTNamespace);
-      };
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      document.head.appendChild(tag);
-    });
-  }
-  return apiPromise;
-}
-
 interface CoursePlayerProps {
   lessons: CourseLessonRow[];
   progress: LessonProgressRow[];
+  // Published lecture notes (Markdown), keyed by lesson id.
+  notes: Record<number, string>;
   initialLessonId: number;
 }
 
-export function CoursePlayer({ lessons, progress, initialLessonId }: CoursePlayerProps) {
+export function CoursePlayer({ lessons, progress, notes, initialLessonId }: CoursePlayerProps) {
   const [currentId, setCurrentId] = useState(initialLessonId);
   const [done, setDone] = useState(() => new Set(progress.filter((p) => p.completed).map((p) => p.lesson_id)));
   const positions = useRef(new Map(progress.map((p) => [p.lesson_id, p.last_position_seconds])));
@@ -199,6 +158,16 @@ export function CoursePlayer({ lessons, progress, initialLessonId }: CoursePlaye
             </button>
           </div>
         </div>
+
+        {notes[current.id] && (
+          <section className="mt-8 rounded-[3px] border border-border bg-surface px-6 py-6 sm:px-8">
+            <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+              <h3 className="font-display text-[15px] text-ink uppercase">Lecture notes</h3>
+              <span className="font-mono text-[10.5px] text-muted">Prepared from this lesson’s video</span>
+            </div>
+            <LectureNotes markdown={notes[current.id]} />
+          </section>
+        )}
       </div>
 
       <aside className="overflow-hidden rounded-[3px] border border-border bg-surface lg:max-h-[calc(100vh-180px)] lg:self-start lg:overflow-y-auto thin-scroll">
@@ -242,6 +211,11 @@ export function CoursePlayer({ lessons, progress, initialLessonId }: CoursePlaye
                   <span className={`text-[13px] leading-[1.4] ${active ? "font-bold text-ink" : "text-text"}`}>
                     {lesson.title}
                   </span>
+                  {notes[lesson.id] && (
+                    <span className="ml-auto shrink-0 rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[9.5px] tracking-[0.08em] text-primary uppercase">
+                      Notes
+                    </span>
+                  )}
                 </button>
               </li>
             );

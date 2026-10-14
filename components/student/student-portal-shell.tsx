@@ -5,18 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-interface WeekMiniItem {
-  key: number;
-  subject: string;
-  mark: string;
-  colorClass: string;
-}
 
 interface StudentPortalShellProps {
   student: { name: string; username: string; avatarColor: string };
-  streak: number;
-  streakNote: string;
-  weekMini?: WeekMiniItem[];
   unreadCount: number;
   children: React.ReactNode;
 }
@@ -52,7 +43,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function StudentPortalShell({ student, streak, streakNote, unreadCount, children }: StudentPortalShellProps) {
+export function StudentPortalShell({ student, unreadCount, children }: StudentPortalShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -88,11 +79,10 @@ export function StudentPortalShell({ student, streak, streakNote, unreadCount, c
   }
 
   const sidebarOpen = isNarrow ? true : !collapsed;
-  const streakDots = Array.from({ length: 8 }, (_, i) => i >= 8 - Math.min(streak, 8));
 
   return (
     <div className="grid min-h-screen" style={{
-        gridTemplateColumns: isNarrow ? "1fr" : collapsed ? "72px 1fr" : "288px 1fr",
+        gridTemplateColumns: isNarrow ? "1fr" : collapsed ? "72px 1fr" : "320px 1fr",
         transition: "grid-template-columns 300ms ease-in-out",
       }}>
       {isNarrow && (
@@ -107,7 +97,7 @@ export function StudentPortalShell({ student, streak, streakNote, unreadCount, c
       <aside
         className={`thin-scroll flex h-screen flex-col gap-5 overflow-y-auto overflow-x-hidden border-r border-border bg-surface py-5 whitespace-nowrap transition-[transform,padding] duration-300 ease-in-out ${
           isNarrow
-            ? `fixed inset-y-0 left-0 z-[70] w-[288px] shadow-[var(--shadow-lg)] ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
+            ? `fixed inset-y-0 left-0 z-[70] w-[320px] shadow-[var(--shadow-lg)] ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`
             : "sticky top-0"
         } ${isNarrow || !collapsed ? "px-4" : "px-3"}`}
       >
@@ -179,29 +169,6 @@ export function StudentPortalShell({ student, streak, streakNote, unreadCount, c
             );
           })}
         </nav>
-
-        <Collapse open={sidebarOpen}>
-          <div className="flex flex-col gap-5">
-            <div className="rounded-[3px] border border-border-strong bg-mint p-4">
-              <div className="text-[11px] font-bold tracking-[0.14em] text-primary-2 uppercase">Current streak</div>
-              <div className="mt-2.5 flex items-baseline gap-2">
-                <span className="font-display text-[32px] leading-none text-ink">{streak}</span>
-                <span className="text-[12.5px] text-text">weeks unbroken</span>
-              </div>
-              <div className="mt-3 flex gap-1">
-                {streakDots.map((filled, i) => (
-                  <span
-                    key={i}
-                    className={`h-1.5 flex-1 rounded-full ${filled ? "bg-primary-2" : "bg-surface-2"}`}
-                    title={filled ? "Unbroken week" : "No record"}
-                  />
-                ))}
-              </div>
-              <div className="mt-2.5 font-mono text-[10.5px] text-muted">{streakNote}</div>
-            </div>
-
-          </div>
-        </Collapse>
 
         <button
           type="button"

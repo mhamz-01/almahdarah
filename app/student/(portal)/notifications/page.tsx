@@ -3,7 +3,18 @@ import { getStudentSession } from "@/lib/get-student-session";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { computeStudentStats } from "@/lib/students";
 import { MarkAllReadButton } from "@/components/student/mark-all-read-button";
-import type { AttendanceRow, ClassScheduleRow, StudentAuthRow, StudentNoteRow } from "@/lib/types";
+import type {
+  AttendanceRow,
+  ClassScheduleRow,
+  CourseLessonRow,
+  CourseRow,
+  LessonNoteRow,
+  StudentAuthRow,
+  StudentNoteRow,
+} from "@/lib/types";
+
+// How long a "new lecture notes" notice stays in the feed.
+const NEW_NOTES_DAYS = 14;
 
 export const dynamic = "force-dynamic";
 
@@ -44,11 +55,19 @@ export default async function StudentNotificationsPage() {
   if (!session) redirect("/student/login");
 
   const supabase = createSupabaseAdminClient();
-  const [studentRes, attendanceRes, scheduleRes, notesRes] = await Promise.all([
+  const newNotesSince = new Date();
+  newNotesSince.setUTCDate(newNotesSince.getUTCDate() - NEW_NOTES_DAYS);
+  const [studentRes, attendanceRes, scheduleRes, notesRes, lectureNotesRes] = await Promise.all([
     supabase.from("students").select("*").eq("id", session.studentId).maybeSingle(),
     supabase.from("attendance").select("*").eq("student_id", session.studentId).order("class_date", { ascending: false }).limit(60),
     supabase.from("class_schedule").select("*").order("sort_order", { ascending: true }),
     supabase.from("student_notes").select("*").eq("student_id", session.studentId).order("created_at", { ascending: false }).limit(50),
+    supabase
+      .from("lesson_notes")
+      .select("lesson_id, published_at")
+      .gte("published_at", newNotesSince.toISOString())
+      .order("published_at", { ascending: false })
+      .limit(20),
   ]);
 
   const student = studentRes.data as StudentAuthRow | null;
@@ -57,8 +76,29 @@ export default async function StudentNotificationsPage() {
   const attendance = (attendanceRes.data as AttendanceRow[] | null) ?? [];
   const schedule = (scheduleRes.data as ClassScheduleRow[] | null) ?? [];
   const notes = (notesRes.data as StudentNoteRow[] | null) ?? [];
+  const lectureNotes = (lectureNotesRes.data as Pick<LessonNoteRow, "lesson_id" | "published_at">[] | null) ?? [];
   const now = new Date();
   const stats = computeStudentStats(student, attendance, now);
+
+  // Lesson + course titles for recently published lecture notes.
+  const noteLessonsRes = lectureNotes.length
+    ? await supabase
+        .from("course_lessons")
+        .select("id, course_id, position, title")
+        .in("id", lectureNotes.map((n) => n.lesson_id))
+    : { data: [] };
+  const noteLessons = (noteLessonsRes.data as Pick<CourseLessonRow, "id" | "course_id" | "position" | "title">[] | null) ?? [];
+  const noteCoursesRes = noteLessons.length
+    ? await supabase
+        .from("courses")
+        .select("id, title")
+        .eq("published", true)
+        .in("id", [...new Set(noteLessons.map((l) => l.course_id))])
+    : { data: [] };
+  const noteCourses = new Map(
+    ((noteCoursesRes.data as Pick<CourseRow, "id" | "title">[] | null) ?? []).map((c) => [c.id, c.title]),
+  );
+  const noteLessonsById = new Map(noteLessons.map((l) => [l.id, l]));
 
   const notices: Notice[] = [];
 
@@ -73,6 +113,23 @@ export default async function StudentNotificationsPage() {
       title: note.body.length > 80 ? `${note.body.slice(0, 77)}…` : note.body,
       body: note.body,
       unread: !note.read,
+    });
+  }
+
+  for (const note of lectureNotes) {
+    const lesson = noteLessonsById.get(note.lesson_id);
+    const courseTitle = lesson && noteCourses.get(lesson.course_id);
+    if (!lesson || !courseTitle || !note.published_at) continue;
+    notices.push({
+      key: `lecture-notes-${note.lesson_id}`,
+      kind: "New lecture notes",
+      barClass: "bg-primary-2",
+      labelClass: "text-primary",
+      time: new Date(note.published_at),
+      timeLabel: "",
+      title: `Notes are ready for “${lesson.title}”`,
+      body: `${courseTitle} · Lesson ${lesson.position}. Open the lesson in Courses — the notes are under the video.`,
+      unread: false,
     });
   }
 

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getStudentSession } from "@/lib/get-student-session";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { CoursePlayer } from "@/components/student/course-player";
-import type { CourseLessonRow, CourseRow, LessonProgressRow } from "@/lib/types";
+import type { CourseLessonRow, CourseRow, LessonNoteRow, LessonProgressRow } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -32,14 +32,23 @@ export default async function StudentCoursePage({
   if (!course) notFound();
   const lessons = (lessonsRes.data as CourseLessonRow[] | null) ?? [];
 
-  const progressRes = lessons.length
-    ? await supabase
-        .from("lesson_progress")
-        .select("*")
-        .eq("student_id", session.studentId)
-        .in("lesson_id", lessons.map((l) => l.id))
-    : { data: [] as LessonProgressRow[] };
+  const lessonIds = lessons.map((l) => l.id);
+  const [progressRes, notesRes] = lessons.length
+    ? await Promise.all([
+        supabase.from("lesson_progress").select("*").eq("student_id", session.studentId).in("lesson_id", lessonIds),
+        // Only the published copy — drafts are admin-only.
+        supabase
+          .from("lesson_notes")
+          .select("lesson_id, published_md")
+          .in("lesson_id", lessonIds)
+          .not("published_md", "is", null),
+      ])
+    : [{ data: [] }, { data: [] }];
   const progress = (progressRes.data as LessonProgressRow[] | null) ?? [];
+  const notes: Record<number, string> = {};
+  for (const n of (notesRes.data as Pick<LessonNoteRow, "lesson_id" | "published_md">[] | null) ?? []) {
+    if (n.published_md) notes[n.lesson_id] = n.published_md;
+  }
 
   // ?lesson=<position> deep-links; otherwise resume the first unfinished lesson.
   const done = new Set(progress.filter((p) => p.completed).map((p) => p.lesson_id));
@@ -64,6 +73,7 @@ export default async function StudentCoursePage({
         <CoursePlayer
           lessons={lessons}
           progress={progress}
+          notes={notes}
           initialLessonId={initial.id}
         />
       )}
