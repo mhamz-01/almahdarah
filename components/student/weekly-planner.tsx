@@ -13,6 +13,7 @@ import {
   paginate,
   planOptions,
   planState,
+  shortDate,
   summarizeWeek,
   tasksOnDay,
   unplannedTasks,
@@ -102,7 +103,7 @@ function Chip({ task, todayIso, busy, lifted, alwaysMenu, onToggle, onOpen, onPl
         if (e.pointerType !== "mouse" || (e.target as HTMLElement).closest("button, select, a")) return;
         onPress(e, false);
       }}
-      className={`rounded-[12px] border bg-surface p-2 transition-opacity select-none md:cursor-grab ${lifted ? "opacity-35" : ""} ${
+      className={`rounded-[12px] border bg-surface p-3 transition-opacity select-none md:cursor-grab md:p-2 ${lifted ? "opacity-35" : ""} ${
         state === "missed" ? "border-gold" : state === "done" ? "border-border opacity-80" : "border-border-strong"
       }`}
     >
@@ -114,14 +115,14 @@ function Chip({ task, todayIso, busy, lifted, alwaysMenu, onToggle, onOpen, onPl
           aria-label={task.completed ? `Mark "${task.title}" as to do` : `Mark "${task.title}" as done`}
           className="group/check mt-px shrink-0"
         >
-          <TaskTick checked={task.completed} busy={busy} size={18} />
+          <TaskTick checked={task.completed} busy={busy} size={20} />
         </button>
         <button type="button" onClick={onOpen} className="min-w-0 flex-1 text-left">
-          <span className={`line-clamp-2 block text-[12.5px] leading-[1.3] font-semibold ${task.completed ? "text-muted line-through" : "text-ink"}`}>
+          <span className={`line-clamp-2 block text-[14.5px] leading-[1.3] font-semibold md:text-[12.5px] ${task.completed ? "text-muted line-through" : "text-ink"}`}>
             {task.title}
           </span>
           {task.subject && (
-            <span className="mt-0.5 flex items-center gap-1 text-[10.5px] text-muted">
+            <span className="mt-0.5 flex items-center gap-1 text-[12px] text-muted md:text-[10.5px]">
               <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: colorForSubject(task.subject) }} />
               <span className="truncate">{task.subject}</span>
             </span>
@@ -131,6 +132,7 @@ function Chip({ task, todayIso, busy, lifted, alwaysMenu, onToggle, onOpen, onPl
         <span
           role="presentation"
           aria-hidden
+          data-grip
           title="Drag to a day"
           onPointerDown={(e) => {
             if (busy || (e.pointerType === "mouse" && e.button !== 0)) return;
@@ -138,7 +140,7 @@ function Chip({ task, todayIso, busy, lifted, alwaysMenu, onToggle, onOpen, onPl
             onPress(e, true);
           }}
           onContextMenu={(e) => e.preventDefault()}
-          className="-my-1 -mr-1 flex h-9 w-8 shrink-0 cursor-grab touch-none items-center justify-center rounded-[10px] text-muted/70 select-none hover:bg-surface-2 hover:text-ink active:cursor-grabbing md:h-7 md:w-6"
+          className={`-my-1 -mr-1 flex h-11 w-10 shrink-0 cursor-grab touch-none items-center justify-center rounded-[10px] text-muted/70 select-none hover:bg-surface-2 hover:text-ink active:cursor-grabbing md:h-7 md:w-6`}
           style={{ WebkitTouchCallout: "none" }}
         >
           <Grip />
@@ -175,6 +177,10 @@ function Chip({ task, todayIso, busy, lifted, alwaysMenu, onToggle, onOpen, onPl
 export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan, onOpen, onCreate }: WeeklyPlannerProps) {
   const thisWeek = weekStart(todayIso);
   const [start, setStart] = useState(thisWeek);
+  // Phone view shows one day at a time; this is the day in focus.
+  const [selected, setSelected] = useState(todayIso);
+  const [trayOpen, setTrayOpen] = useState(false);
+  const swipe = useRef<{ x: number; y: number } | null>(null);
   const [press, setPress] = useState<Press | null>(null);
   const [dragging, setDragging] = useState(false);
   const [trayPage, setTrayPage] = useState(0);
@@ -189,10 +195,21 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
   const days = useMemo(() => weekDays(start), [start]);
   const summary = useMemo(() => summarizeWeek(tasks, days, todayIso), [tasks, days, todayIso]);
   const unplanned = useMemo(() => unplannedTasks(tasks), [tasks]);
+  const selectedList = useMemo(() => tasksOnDay(tasks, selected), [tasks, selected]);
   const tray = useMemo(() => paginate(unplanned, trayPage, TRAY_PAGE_SIZE), [unplanned, trayPage]);
   const isCurrent = start === thisWeek;
   const relation = start < thisWeek ? "Past week" : start > thisWeek ? "Upcoming week" : "This week";
   const draggedTask = dragging && press ? press.task : null;
+
+  function goToWeek(nextStart: string) {
+    setStart(nextStart);
+    setSelected(nextStart === thisWeek ? todayIso : nextStart);
+  }
+
+  function goToDay(iso: string) {
+    setStart(weekStart(iso));
+    setSelected(iso);
+  }
 
   function startPress(task: StudentTaskRow, e: React.PointerEvent<HTMLElement>, immediate: boolean) {
     const chip = e.currentTarget.closest<HTMLElement>("[data-chip]");
@@ -327,7 +344,7 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
   });
 
   return (
-    <div>
+    <div className="flex flex-col">
       {error && (
         <p role="alert" className="mb-4 rounded-[14px] border border-red-600/30 bg-red-600/10 px-4 py-3 text-sm text-red-600">
           {error}
@@ -335,12 +352,12 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
       )}
 
       {/* Week navigation + summary */}
-      <div className="rounded-[22px] border border-border bg-surface p-4 sm:p-5">
+      <div className="order-1 rounded-[22px] border border-border bg-surface p-3.5 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setStart(addDays(start, -7))}
+              onClick={() => goToWeek(addDays(start, -7))}
               aria-label="Previous week"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-border-strong text-ink hover:border-ink"
             >
@@ -352,14 +369,14 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
             </div>
             <button
               type="button"
-              onClick={() => setStart(addDays(start, 7))}
+              onClick={() => goToWeek(addDays(start, 7))}
               aria-label="Next week"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-border-strong text-ink hover:border-ink"
             >
               <Chevron dir="right" />
             </button>
             {!isCurrent && (
-              <button type="button" onClick={() => setStart(thisWeek)} className="ml-1 text-[12.5px] font-bold text-primary hover:underline">
+              <button type="button" onClick={() => goToWeek(thisWeek)} className="ml-1 text-[12.5px] font-bold text-primary hover:underline">
                 Back to this week
               </button>
             )}
@@ -394,32 +411,143 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
         </div>
       </div>
 
-      {/* Not planned yet */}
+      {/* Not planned yet: a collapsible list on phones, an open tray on larger screens */}
       {unplanned.length > 0 && (
         <section
           aria-label="Tasks not planned yet"
           data-drop={UNPLANNED}
-          className={`mt-4 rounded-[22px] border border-dashed p-4 transition-colors ${
+          className={`order-4 mt-3 rounded-[22px] border border-dashed p-3.5 transition-colors md:order-2 md:mt-4 md:p-4 ${
             overKey === UNPLANNED ? "border-primary bg-primary/[0.09]" : "border-border-strong bg-surface-2/50"
           }`}
         >
-          <div className="flex items-baseline justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setTrayOpen((o) => !o)}
+            aria-expanded={trayOpen}
+            className="flex min-h-9 w-full items-center justify-between gap-3 text-left md:pointer-events-none md:min-h-0"
+          >
             <h3 className="text-[14px] font-bold text-ink">
               Not planned yet <span className="font-mono text-[12px] text-muted">{unplanned.length}</span>
             </h3>
-            <span className="text-right text-[12px] text-muted">Drag by the grip <span className="hidden md:inline">onto a day,</span> or use the menu</span>
+            <span className="hidden text-right text-[12px] text-muted md:inline">Drag by the grip onto a day, or use the menu</span>
+            <span className="flex items-center gap-1 text-[12px] font-semibold text-primary md:hidden">
+              {trayOpen ? "Hide" : "Show"}
+              <svg viewBox="0 0 24 24" className={`h-4 w-4 transition-transform ${trayOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </span>
+          </button>
+          <div className={`${trayOpen ? "block" : "hidden"} md:block`}>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {tray.items.map((task) => (
+                <Chip key={task.id} {...chipProps(task)} alwaysMenu />
+              ))}
+            </ul>
+            <Pager page={tray.page} pages={tray.pages} from={tray.from} to={tray.to} total={unplanned.length} onPage={setTrayPage} className="mt-3" />
           </div>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {tray.items.map((task) => (
-              <Chip key={task.id} {...chipProps(task)} alwaysMenu />
-            ))}
-          </ul>
-          <Pager page={tray.page} pages={tray.pages} from={tray.from} to={tray.to} total={unplanned.length} onPage={setTrayPage} className="mt-3" />
         </section>
       )}
 
-      {/* Days */}
-      <ol className="mt-4 grid gap-3 md:grid-cols-7">
+      {/* Phone: pick a day from the strip, see only that day's tasks (swipe to change day) */}
+      <div className="order-2 mt-3 md:hidden">
+        <div role="tablist" aria-label="Day of the week" className="grid grid-cols-7 gap-1.5">
+          {days.map((iso) => {
+            const list = tasksOnDay(tasks, iso);
+            const open = list.filter((t) => !t.completed).length;
+            const isSelected = iso === selected;
+            const dot =
+              list.length === 0
+                ? "bg-transparent"
+                : open === 0
+                  ? isSelected
+                    ? "bg-white"
+                    : "bg-green"
+                  : iso < todayIso
+                    ? "bg-gold"
+                    : isSelected
+                      ? "bg-white"
+                      : "bg-primary";
+            return (
+              <button
+                key={iso}
+                type="button"
+                role="tab"
+                aria-selected={isSelected}
+                aria-label={`${dayName(iso)} ${dayNumber(iso)}, ${list.length} ${list.length === 1 ? "task" : "tasks"}`}
+                data-drop={iso}
+                onClick={() => setSelected(iso)}
+                className={`flex h-[62px] flex-col items-center justify-center gap-0.5 rounded-[14px] border transition-colors ${
+                  isSelected
+                    ? "border-primary bg-primary text-white"
+                    : overKey === iso
+                      ? "border-primary bg-primary/[0.12] text-ink"
+                      : iso === todayIso
+                        ? "border-primary bg-primary/[0.06] text-ink"
+                        : "border-border bg-surface text-ink"
+                }`}
+              >
+                <span className={`font-mono text-[9.5px] tracking-[0.08em] uppercase ${isSelected ? "text-white/85" : "text-muted"}`}>{dayName(iso)}</span>
+                <span className="font-display text-[18px] leading-none">{dayNumber(iso)}</span>
+                <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <section
+        aria-label={`Tasks for ${shortDate(selected)}`}
+        onTouchStart={(e) => {
+          const t = e.target as HTMLElement;
+          swipe.current = t.closest("[data-grip], select, textarea, [role=combobox]") ? null : { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }}
+        onTouchEnd={(e) => {
+          const from = swipe.current;
+          swipe.current = null;
+          if (!from || document.documentElement.classList.contains("planner-dragging")) return;
+          const dx = e.changedTouches[0].clientX - from.x;
+          const dy = e.changedTouches[0].clientY - from.y;
+          if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8) goToDay(addDays(selected, dx < 0 ? 1 : -1));
+        }}
+        className="order-3 mt-3 rounded-[22px] border border-border bg-surface p-3.5 md:hidden"
+      >
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="flex items-center gap-2 text-[15px] font-bold text-ink">
+            {shortDate(selected)}
+            {selected === todayIso && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10.5px] font-bold text-primary">Today</span>}
+          </h3>
+          {selectedList.length > 0 && (
+            <span className="font-mono text-[11.5px] text-muted">
+              {selectedList.filter((t) => t.completed).length}/{selectedList.length} done
+            </span>
+          )}
+        </div>
+
+        {selectedList.length === 0 ? (
+          <p className="mt-3 rounded-[14px] bg-surface-2/60 px-4 py-6 text-center text-[13px] leading-[1.5] text-muted">
+            Nothing planned for this day.
+            {unplanned.length > 0 && " Pull something from \u201cNot planned yet\u201d below, or add a new task."}
+          </p>
+        ) : (
+          <ul className="mt-3 flex flex-col gap-2">
+            {selectedList.map((task) => (
+              <Chip key={task.id} {...chipProps(task)} alwaysMenu />
+            ))}
+          </ul>
+        )}
+
+        <button
+          type="button"
+          onClick={() => onCreate(selected)}
+          className="mt-3 flex h-11 w-full items-center justify-center rounded-[14px] border border-dashed border-border-strong text-[13px] font-bold text-primary transition-colors active:bg-primary/[0.06]"
+        >
+          + Add a task for {shortDate(selected)}
+        </button>
+        <p className="mt-2.5 text-center text-[11px] text-muted">Swipe left or right to change day</p>
+      </section>
+
+      {/* Days: seven columns on larger screens */}
+      <ol className="order-3 mt-4 hidden gap-3 md:grid md:grid-cols-7">
         {days.map((iso) => {
           const list = tasksOnDay(tasks, iso);
           const doneHere = list.filter((t) => t.completed).length;

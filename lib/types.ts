@@ -411,6 +411,18 @@ export interface StudentTaskRow {
   attachments: StudentTaskAttachment[];
 }
 
+export interface StudentEmailPrefsRow {
+  student_id: number;
+  weekly_digest: boolean;
+  plan_reminder: boolean;
+  /** ISO weekdays, 1 = Monday ... 7 = Sunday. */
+  reminder_days: number[];
+  last_digest_sent_on: string | null;
+  last_reminder_sent_on: string | null;
+  last_test_at: string | null;
+  updated_at: string;
+}
+
 export type BoardStatus = "todo" | "in_progress" | "done";
 
 export interface BoardCardRow {

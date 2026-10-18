@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { href: "/student/attendance", num: "04", label: "Attendance" },
   { href: "/student/notifications", num: "05", label: "Notifications", withBadge: true },
   { href: "/student/punch", num: "06", label: "Punch today's class" },
+  { href: "/student/reminders", num: "07", label: "Email reminders" },
 ];
 
 function Collapse({ open, children }: { open: boolean; children: React.ReactNode }) {

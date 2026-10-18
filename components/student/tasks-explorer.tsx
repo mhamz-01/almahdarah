@@ -230,7 +230,7 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
         </div>
       ) : (
         <>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3 sm:mt-6">
             <button
               type="button"
               onClick={() => setSection(null)}
@@ -243,7 +243,7 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
             </button>
           </div>
 
-          <div className="mt-6">
+          <div className="mt-3 sm:mt-6">
         {section === "teacher" ? (
           <div className="max-w-[860px]">
             <TaskListView
@@ -262,7 +262,7 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
           <div className="h-48 animate-pulse rounded-[22px] bg-surface-2" aria-hidden />
         ) : (
           <>
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 sm:mb-5">
             <div role="tablist" aria-label="How to view my tasks" className="inline-flex rounded-full border border-border-strong bg-surface p-1">
               {(
                 [
@@ -287,9 +287,19 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
             <button
               type="button"
               onClick={() => openCreate()}
-              className="h-9 rounded-full bg-primary px-5 text-[13px] font-bold text-white transition hover:brightness-[1.07]"
+              className="hidden h-9 rounded-full bg-primary px-5 text-[13px] font-bold text-white transition hover:brightness-[1.07] sm:block"
             >
               + Add task
+            </button>
+            <button
+              type="button"
+              onClick={() => openCreate()}
+              aria-label="Add a task"
+              className="fixed right-4 bottom-[max(env(safe-area-inset-bottom),16px)] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-[var(--shadow-lg)] transition active:scale-95 sm:hidden"
+            >
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
+                <path d="M12 5v14M5 12h14" />
+              </svg>
             </button>
             </div>
 
