@@ -22,7 +22,7 @@ export default function StudentLoginPage() {
             alt="Al-Mahdrah"
             width={52}
             height={52}
-            className="h-[52px] w-auto invert brightness-[1.6]"
+            className="h-[52px] w-[52px] self-start object-contain invert brightness-[1.6]"
           />
           <div>
             <span className="font-mono text-[11px] tracking-[0.28em] text-white/80 uppercase">Student portal</span>

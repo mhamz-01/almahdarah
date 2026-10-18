@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useTheme } from "next-themes";
+import { useHasMounted } from "@/lib/hooks/use-has-mounted";
 import { EmailReminders, type EmailRemindersProps } from "@/components/student/email-reminders";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
@@ -15,10 +17,11 @@ export interface StudentProfile {
   memberSince: string;
 }
 
-export type SettingsSection = "profile" | "email" | "feedback";
+export type SettingsSection = "profile" | "appearance" | "email" | "feedback";
 
 const SECTIONS: { key: SettingsSection; label: string }[] = [
   { key: "profile", label: "Profile" },
+  { key: "appearance", label: "Appearance" },
   { key: "email", label: "Email reminders" },
   { key: "feedback", label: "Feedback & complaints" },
 ];
@@ -72,6 +75,40 @@ function ProfileSection({ profile }: { profile: StudentProfile }) {
           <Field label="What you expect from the portal" value={profile.expectations} />
         </div>
         <Field label="Member since" value={profile.memberSince} />
+      </div>
+    </div>
+  );
+}
+
+const THEMES = [
+  { value: "light", label: "Light", hint: "Warm paper tones, easy in daylight" },
+  { value: "dark", label: "Dark", hint: "Softer on the eyes at night" },
+] as const;
+
+function AppearanceSection() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const hasMounted = useHasMounted();
+  const current = hasMounted ? resolvedTheme : null;
+
+  return (
+    <div>
+      <p className="mb-4 text-[13.5px] leading-[1.6] text-text">Choose how the portal looks. Your choice is remembered on this device.</p>
+      <div role="radiogroup" aria-label="Colour theme" className="grid gap-3 sm:grid-cols-2">
+        {THEMES.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            role="radio"
+            aria-checked={current === t.value}
+            onClick={() => setTheme(t.value)}
+            className={`rounded-[3px] border-2 px-4 py-4 text-left transition-colors ${
+              current === t.value ? "border-primary bg-primary/[0.06]" : "border-border hover:border-border-strong"
+            }`}
+          >
+            <span className="block text-[15px] font-bold text-ink">{t.label}</span>
+            <span className="mt-1 block text-[12.5px] text-muted">{t.hint}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -174,6 +211,7 @@ function FeedbackSection() {
 
 const TITLES: Record<SettingsSection, string> = {
   profile: "Profile",
+  appearance: "Appearance",
   email: "Email reminders",
   feedback: "Feedback & complaints",
 };
@@ -222,6 +260,7 @@ export function SettingsModal({
           </h2>
           <div key={section} className="fade-in">
             {section === "profile" && <ProfileSection profile={profile} />}
+            {section === "appearance" && <AppearanceSection />}
             {section === "email" && <EmailReminders {...emailPrefs} />}
             {section === "feedback" && <FeedbackSection />}
           </div>
