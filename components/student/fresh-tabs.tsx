@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Segmented } from "@/components/ui/segmented";
 
 export interface FreshClass {
   id: number;
@@ -20,6 +21,10 @@ export interface FreshTask {
   color: string;
   dueLabel: string | null;
   dueBadgeClass: string | null;
+  description: string;
+  kind: "assigned" | "personal";
+  attachments: number;
+  planned: string | null;
 }
 
 const PAGE_SIZE = 3;
@@ -88,25 +93,39 @@ function ClassCard({ c }: { c: FreshClass }) {
 }
 
 function TaskCard({ t }: { t: FreshTask }) {
+  const chip = "inline-flex items-center rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-semibold text-text";
   return (
     <Link
       href={t.href}
-      className="group flex flex-col overflow-hidden rounded-[22px] border border-border bg-surface transition-colors hover:border-border-strong"
+      className="group flex aspect-square flex-col overflow-hidden rounded-[22px] border border-border bg-surface transition-colors hover:border-border-strong"
     >
-      <div className="relative flex aspect-video items-center justify-center overflow-hidden" style={{ background: t.color }}>
-        <span aria-hidden className="font-display text-[clamp(56px,9vw,84px)] leading-none text-white/90">
-          {t.subject.charAt(0).toUpperCase()}
+      <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-3 text-white sm:px-5" style={{ background: t.color }}>
+        <span className="truncate text-[12px] font-bold tracking-[0.1em] uppercase">{t.subject}</span>
+        <span className="shrink-0 rounded-full bg-white/20 px-2.5 py-0.5 font-mono text-[10.5px] tracking-[0.08em] uppercase">
+          {t.kind === "assigned" ? "Assigned" : "Personal"}
         </span>
-        {t.dueLabel && (
-          <span className={`absolute top-3 left-3 rounded-full px-2.5 py-1 text-[11px] font-bold ${t.dueBadgeClass ?? "bg-white text-ink"}`}>
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col p-4 sm:p-5">
+        {t.dueLabel ? (
+          <span className={`self-start rounded-full px-2.5 py-1 text-[11px] font-bold ${t.dueBadgeClass ?? "bg-surface-2 text-ink"}`}>
             {t.dueLabel}
           </span>
+        ) : (
+          <span className="self-start rounded-full bg-surface-2 px-2.5 py-1 text-[11px] font-bold text-muted">No due date</span>
         )}
-      </div>
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        <span className="truncate font-mono text-[11px] text-muted">{t.subject}</span>
-        <span className="mt-1.5 line-clamp-2 text-[15px] leading-[1.35] font-semibold text-ink group-hover:underline">{t.title}</span>
-        <span className="mt-auto pt-4 text-[13px] font-bold text-primary">View task →</span>
+        <span className="mt-3 line-clamp-2 text-[16px] leading-[1.3] font-semibold text-ink group-hover:underline">{t.title}</span>
+        <p className="mt-2 line-clamp-3 text-[13px] leading-[1.55] text-text">
+          {t.description || "No description added."}
+        </p>
+        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3">
+          {t.planned && <span className={chip}>Planned {t.planned}</span>}
+          {t.attachments > 0 && (
+            <span className={chip}>
+              {t.attachments} file{t.attachments === 1 ? "" : "s"}
+            </span>
+          )}
+        </div>
+        <span className="border-t border-border pt-3 mt-3 text-[13px] font-bold text-primary">View task →</span>
       </div>
     </Link>
   );
@@ -137,36 +156,33 @@ export function FreshTabs({ classes, tasks }: { classes: FreshClass[]; tasks: Fr
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div role="tablist" aria-label="Fresh for you" className="inline-flex rounded-full bg-surface-2 p-1">
-          {tabs.map((t) => {
-            const selected = t.key === active;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                role="tab"
-                id={`fresh-tab-${t.key}`}
-                aria-selected={selected}
-                aria-controls={`fresh-panel-${t.key}`}
-                onClick={() => setActive(t.key)}
-                className={`inline-flex h-9 items-center gap-2 rounded-full px-4 text-[13px] font-bold transition-colors ${
-                  selected ? "bg-surface text-ink shadow-[var(--shadow-sm)]" : "text-muted hover:text-ink"
-                }`}
-              >
+        <Segmented
+          ariaLabel="Fresh for you"
+          value={active}
+          onChange={setActive}
+          options={tabs.map((t) => ({
+            key: t.key,
+            label: (
+              <span className="inline-flex items-center gap-2">
                 {t.label}
-                <span className={`rounded-full px-1.5 font-mono text-[10.5px] ${selected ? "bg-primary text-white" : "bg-border text-muted"}`}>
+                <span className={`rounded-full px-1.5 font-mono text-[10.5px] transition-colors duration-300 ${t.key === active ? "bg-primary text-white" : "bg-border text-muted"}`}>
                   {t.count}
                 </span>
-              </button>
-            );
-          })}
-        </div>
+              </span>
+            ),
+          }))}
+          className="inline-block bg-surface-2 p-1"
+          thumbClass="bg-surface shadow-[var(--shadow-sm)]"
+          activeClass="text-ink"
+          buttonClass="h-9 text-[13px]"
+          optionProps={(key) => ({ id: `fresh-tab-${key}`, "aria-controls": `fresh-panel-${key}` })}
+        />
         <Link href={current.href} className="shrink-0 text-[12.5px] font-semibold text-primary hover:underline">
           {current.linkLabel}
         </Link>
       </div>
 
-      <div role="tabpanel" id={`fresh-panel-${active}`} aria-labelledby={`fresh-tab-${active}`}>
+      <div key={active} role="tabpanel" id={`fresh-panel-${active}`} aria-labelledby={`fresh-tab-${active}`} className="fade-in">
         {total === 0 ? (
           <Empty>
             {active === "classes"

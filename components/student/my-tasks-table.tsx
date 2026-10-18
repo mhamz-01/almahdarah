@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Segmented } from "@/components/ui/segmented";
 import { OptionSelect } from "@/components/student/option-select";
 import { Pager } from "@/components/student/pager";
 import { TaskTick } from "@/components/student/task-tick";
@@ -81,47 +82,32 @@ export function MyTasksTable({ tasks, todayIso, now, busyId, error, onToggle, on
     return (
       <li
         key={task.id}
-        className="grid grid-cols-[28px_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-b border-border px-4 py-3 last:border-b-0 hover:bg-bg md:grid-cols-[28px_minmax(0,1fr)_170px_110px_68px]"
+        className="grid grid-cols-[40px_minmax(0,1fr)] items-center gap-x-1 gap-y-1.5 border-b border-border px-2 py-3 last:border-b-0 hover:bg-bg sm:px-4 md:grid-cols-[28px_minmax(0,1fr)_170px_110px_68px] md:gap-x-3 md:gap-y-2 md:px-4"
       >
         <button
           type="button"
           onClick={() => onToggle(task)}
           disabled={busy}
           aria-label={task.completed ? `Mark "${task.title}" as to do` : `Mark "${task.title}" as done`}
-          className="group/check"
+          className="group/check flex h-10 w-10 items-center justify-center md:col-start-1 md:row-start-1 md:h-7 md:w-7"
         >
           <TaskTick checked={task.completed} busy={busy} />
         </button>
 
-        <button type="button" onClick={() => onOpen(task)} className="min-w-0 text-left" title="View details">
-          <span className={`block truncate text-[14.5px] font-semibold ${task.completed ? "text-muted line-through" : "text-ink"}`}>
+        <button type="button" onClick={() => onOpen(task)} className="min-w-0 py-0.5 pr-2 text-left md:col-start-2 md:row-start-1 md:pr-0" title="View details">
+          <span className={`line-clamp-2 block text-[15px] leading-[1.3] font-semibold md:truncate md:text-[14.5px] ${task.completed ? "text-muted line-through" : "text-ink"}`}>
             {task.title}
           </span>
-          <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted">
-            <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: task.subject ? colorForSubject(task.subject) : "var(--muted)" }} />
-            <span className="truncate">{task.subject ?? "No subject"}</span>
+          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-muted">
+            <span className="flex min-w-0 items-center gap-1.5">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: task.subject ? colorForSubject(task.subject) : "var(--muted)" }} />
+              <span className="truncate">{task.subject ?? "No subject"}</span>
+            </span>
+            {due && <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-bold md:hidden ${due.badgeClass}`}>{due.label}</span>}
           </span>
         </button>
 
-        <div className="col-start-2 md:col-start-auto">
-          <OptionSelect
-            ariaLabel={`Plan "${task.title}" for a day`}
-            value={task.planned_date ?? ""}
-            emptyLabel="Not planned"
-            options={planOptions(todayIso, task.planned_date)}
-            disabled={busy}
-            onChange={(v) => onPlan(task, v || null)}
-            className={
-              state === "missed"
-                ? "border-gold bg-gold/10 text-[#8a6b12]"
-                : task.planned_date
-                  ? "border-border-strong text-ink"
-                  : "border-dashed border-border-strong text-muted"
-            }
-          />
-        </div>
-
-        <div className="col-start-2 md:col-start-auto">
+        <div className="hidden md:col-start-4 md:row-start-1 md:block">
           {due ? (
             <span className={`inline-block rounded-full px-2.5 py-1 text-[11px] font-bold ${due.badgeClass}`}>{due.label}</span>
           ) : (
@@ -129,29 +115,50 @@ export function MyTasksTable({ tasks, todayIso, now, busyId, error, onToggle, on
           )}
         </div>
 
-        <div className="col-start-2 flex md:col-start-auto md:justify-end">
-          <button
-            type="button"
-            onClick={() => onEdit(task)}
-            aria-label={`Edit "${task.title}"`}
-            title="Edit"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-primary/10 hover:text-primary"
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(task)}
-            aria-label={`Delete "${task.title}"`}
-            title="Delete"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-600/10 hover:text-red-600"
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
-            </svg>
-          </button>
+        {/* Phone: plan menu and actions share one row under the title. Desktop: they become grid columns. */}
+        <div className="col-start-2 flex items-center gap-2 md:contents">
+          <div className="min-w-0 flex-1 md:col-start-3 md:row-start-1">
+            <OptionSelect
+              ariaLabel={`Plan "${task.title}" for a day`}
+              value={task.planned_date ?? ""}
+              emptyLabel="Not planned"
+              options={planOptions(todayIso, task.planned_date)}
+              disabled={busy}
+              onChange={(v) => onPlan(task, v || null)}
+              className={
+                state === "missed"
+                  ? "border-gold bg-gold/10 text-[#8a6b12]"
+                  : task.planned_date
+                    ? "border-border-strong text-ink"
+                    : "border-dashed border-border-strong text-muted"
+              }
+            />
+          </div>
+
+          <div className="flex shrink-0 md:col-start-5 md:row-start-1 md:justify-end">
+            <button
+              type="button"
+              onClick={() => onEdit(task)}
+              aria-label={`Edit "${task.title}"`}
+              title="Edit"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-muted transition-colors hover:bg-primary/10 hover:text-primary md:h-8 md:w-8"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(task)}
+              aria-label={`Delete "${task.title}"`}
+              title="Delete"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-muted transition-colors hover:bg-red-600/10 hover:text-red-600 md:h-8 md:w-8"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" />
+              </svg>
+            </button>
+          </div>
         </div>
       </li>
     );
@@ -167,31 +174,23 @@ export function MyTasksTable({ tasks, todayIso, now, busyId, error, onToggle, on
 
       {/* Filters: one quiet row. Status on the left, subject (only when there is a choice) on the right. */}
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <div role="tablist" aria-label="Show tasks" className="flex items-center gap-1">
-          {(
-            [
-              ["open", "To do", openCount],
-              ["done", "Done", doneCount],
-              ["all", "All", scoped.length],
-            ] as const
-          ).map(([key, label, count]) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={filter === key}
-              onClick={() => changeFilter(key)}
-              className={`h-8 rounded-full px-3 text-[13px] font-bold transition-colors ${
-                filter === key ? "bg-primary/10 text-primary" : "text-muted hover:text-ink"
-              }`}
-            >
-              {label} <span className="font-mono text-[11.5px] opacity-70">{count}</span>
-            </button>
-          ))}
-        </div>
+        <Segmented
+          ariaLabel="Show tasks"
+          value={filter}
+          onChange={changeFilter}
+          options={[
+            { key: "open", label: <>To do <span className="font-mono text-[11.5px] opacity-70">{openCount}</span></> },
+            { key: "done", label: <>Done <span className="font-mono text-[11.5px] opacity-70">{doneCount}</span></> },
+            { key: "all", label: <>All <span className="font-mono text-[11.5px] opacity-70">{scoped.length}</span></> },
+          ]}
+          className="w-full bg-surface-2 p-1 sm:w-auto sm:bg-transparent sm:p-0"
+          thumbClass="bg-surface shadow-[var(--shadow-sm)] sm:bg-primary/10 sm:shadow-none"
+          activeClass="text-primary"
+          buttonClass="h-9 px-3 text-[13px] sm:h-8"
+        />
 
         {subjects.length > 1 && (
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
             <span className="text-[12px] text-muted">Subject</span>
             <OptionSelect
               ariaLabel="Filter by subject"
@@ -199,7 +198,7 @@ export function MyTasksTable({ tasks, todayIso, now, busyId, error, onToggle, on
               emptyLabel="All subjects"
               options={subjects.map((x) => ({ value: x, label: x }))}
               onChange={changeSubject}
-              className="w-auto min-w-[140px] border-border-strong text-ink"
+              className="w-full min-w-[140px] border-border-strong text-ink sm:w-auto"
             />
           </div>
         )}
@@ -233,7 +232,7 @@ export function MyTasksTable({ tasks, todayIso, now, busyId, error, onToggle, on
           )}
         </div>
       ) : (
-        <div className="mt-4 space-y-5">
+        <div className="mt-4 space-y-5 pb-20 sm:pb-0">
           {paged.visible.map((group) => (
             <section key={group.key} aria-label={group.label ?? "Tasks"}>
               {group.label && (

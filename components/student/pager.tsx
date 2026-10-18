@@ -22,7 +22,7 @@ function Arrow({ dir }: { dir: "left" | "right" }) {
 export function Pager({ page, pages, from, to, total, onPage, className = "" }: PagerProps) {
   if (pages <= 1) return null;
   const btn =
-    "flex h-9 w-9 items-center justify-center rounded-full border border-border-strong text-ink transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-border-strong";
+    "flex h-10 w-10 items-center justify-center rounded-full border border-border-strong text-ink transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-border-strong";
   return (
     <nav aria-label="Pagination" className={`flex items-center justify-between gap-3 ${className}`}>
       <span className="text-[12.5px] text-muted">

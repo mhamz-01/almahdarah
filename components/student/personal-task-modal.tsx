@@ -10,7 +10,7 @@ import type { StudentTaskRow } from "@/lib/types";
 const MAX_FILES = 5;
 
 const inputClasses =
-  "h-11 rounded-xl border-[1.5px] border-border-strong bg-surface px-[15px] text-[14.5px] text-ink transition-colors focus:border-primary focus:shadow-[0_0_0_4px_rgba(17,130,163,0.16)] focus:outline-none";
+  "h-12 min-w-0 rounded-xl border-[1.5px] border-border-strong bg-surface px-[15px] text-[16px] sm:h-11 sm:text-[14.5px] text-ink transition-colors focus:border-primary focus:shadow-[0_0_0_4px_rgba(17,130,163,0.16)] focus:outline-none";
 
 interface PersonalTaskModalProps {
   open: boolean;
@@ -28,7 +28,7 @@ export function PersonalTaskModal(props: PersonalTaskModalProps) {
   // without needing an effect to sync props into state.
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
-      <DialogContent className="thin-scroll max-h-[90vh] overflow-y-auto">
+      <DialogContent className="thin-scroll max-h-[92dvh] overflow-y-auto p-5 sm:p-8">
         {props.open && <PersonalTaskForm key={props.task?.id ?? "new"} {...props} />}
       </DialogContent>
     </Dialog>
@@ -134,7 +134,7 @@ function PersonalTaskForm({ onOpenChange, task, subjectSuggestions, defaultPlann
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Anything you want to remember about this task"
-            className="resize-y rounded-xl border-[1.5px] border-border-strong bg-surface px-[15px] py-[13px] text-[14.5px] text-ink transition-colors focus:border-primary focus:shadow-[0_0_0_4px_rgba(17,130,163,0.16)] focus:outline-none"
+            className="resize-y rounded-xl border-[1.5px] border-border-strong bg-surface px-[15px] py-[13px] text-[16px] sm:text-[14.5px] text-ink transition-colors focus:border-primary focus:shadow-[0_0_0_4px_rgba(17,130,163,0.16)] focus:outline-none"
           />
         </label>
 
@@ -165,7 +165,7 @@ function PersonalTaskForm({ onOpenChange, task, subjectSuggestions, defaultPlann
                   <button
                     type="button"
                     onClick={() => setRemovePaths((p) => [...p, a.path])}
-                    className="shrink-0 font-bold text-red-600 hover:underline"
+                    className="shrink-0 px-1 py-1.5 font-bold text-red-600 hover:underline"
                   >
                     Remove
                   </button>
@@ -180,7 +180,7 @@ function PersonalTaskForm({ onOpenChange, task, subjectSuggestions, defaultPlann
                   <button
                     type="button"
                     onClick={() => setNewFiles((list) => list.filter((_, idx) => idx !== i))}
-                    className="shrink-0 font-bold text-red-600 hover:underline"
+                    className="shrink-0 px-1 py-1.5 font-bold text-red-600 hover:underline"
                   >
                     Remove
                   </button>

@@ -13,7 +13,7 @@ import type {
   StudentNoteRow,
 } from "@/lib/types";
 
-// How long a "new lecture notes" notice stays in the feed.
+// How long a "new lecture notes" / "new class" notice stays in the feed.
 const NEW_NOTES_DAYS = 14;
 
 export const dynamic = "force-dynamic";
@@ -57,7 +57,7 @@ export default async function StudentNotificationsPage() {
   const supabase = createSupabaseAdminClient();
   const newNotesSince = new Date();
   newNotesSince.setUTCDate(newNotesSince.getUTCDate() - NEW_NOTES_DAYS);
-  const [studentRes, attendanceRes, scheduleRes, notesRes, lectureNotesRes] = await Promise.all([
+  const [studentRes, attendanceRes, scheduleRes, notesRes, lectureNotesRes, newLessonsRes] = await Promise.all([
     supabase.from("students").select("*").eq("id", session.studentId).maybeSingle(),
     supabase.from("attendance").select("*").eq("student_id", session.studentId).order("class_date", { ascending: false }).limit(60),
     supabase.from("class_schedule").select("*").order("sort_order", { ascending: true }),
@@ -68,6 +68,12 @@ export default async function StudentNotificationsPage() {
       .gte("published_at", newNotesSince.toISOString())
       .order("published_at", { ascending: false })
       .limit(20),
+    supabase
+      .from("course_lessons")
+      .select("id, course_id, position, title, created_at")
+      .gte("created_at", newNotesSince.toISOString())
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
 
   const student = studentRes.data as StudentAuthRow | null;
@@ -77,6 +83,8 @@ export default async function StudentNotificationsPage() {
   const schedule = (scheduleRes.data as ClassScheduleRow[] | null) ?? [];
   const notes = (notesRes.data as StudentNoteRow[] | null) ?? [];
   const lectureNotes = (lectureNotesRes.data as Pick<LessonNoteRow, "lesson_id" | "published_at">[] | null) ?? [];
+  const newLessons =
+    (newLessonsRes.data as Pick<CourseLessonRow, "id" | "course_id" | "position" | "title" | "created_at">[] | null) ?? [];
   const now = new Date();
   const stats = computeStudentStats(student, attendance, now);
 
@@ -88,12 +96,9 @@ export default async function StudentNotificationsPage() {
         .in("id", lectureNotes.map((n) => n.lesson_id))
     : { data: [] };
   const noteLessons = (noteLessonsRes.data as Pick<CourseLessonRow, "id" | "course_id" | "position" | "title">[] | null) ?? [];
-  const noteCoursesRes = noteLessons.length
-    ? await supabase
-        .from("courses")
-        .select("id, title")
-        .eq("published", true)
-        .in("id", [...new Set(noteLessons.map((l) => l.course_id))])
+  const courseIds = [...new Set([...noteLessons, ...newLessons].map((l) => l.course_id))];
+  const noteCoursesRes = courseIds.length
+    ? await supabase.from("courses").select("id, title").eq("published", true).in("id", courseIds)
     : { data: [] };
   const noteCourses = new Map(
     ((noteCoursesRes.data as Pick<CourseRow, "id" | "title">[] | null) ?? []).map((c) => [c.id, c.title]),
@@ -113,6 +118,22 @@ export default async function StudentNotificationsPage() {
       title: note.body.length > 80 ? `${note.body.slice(0, 77)}…` : note.body,
       body: note.body,
       unread: !note.read,
+    });
+  }
+
+  for (const lesson of newLessons) {
+    const courseTitle = noteCourses.get(lesson.course_id);
+    if (!courseTitle) continue;
+    notices.push({
+      key: `new-class-${lesson.id}`,
+      kind: "New class",
+      barClass: "bg-primary",
+      labelClass: "text-primary",
+      time: new Date(lesson.created_at),
+      timeLabel: "",
+      title: `New class uploaded: “${lesson.title}”`,
+      body: `${courseTitle} · Lesson ${lesson.position}. Open it in Courses to watch.`,
+      unread: false,
     });
   }
 
@@ -210,10 +231,14 @@ export default async function StudentNotificationsPage() {
     unread: false,
   });
 
-  notices.sort((a, b) => b.time.getTime() - a.time.getTime());
-  for (const n of notices) n.timeLabel = relativeDayLabel(n.time, now);
+  // A student only sees notices from the day their account was created onwards.
+  const joinedAt = new Date(`${student.created_at.slice(0, 10)}T00:00:00Z`).getTime();
+  const feed = notices.filter((n) => n.time.getTime() >= joinedAt);
 
-  const unreadCount = notices.filter((n) => n.unread).length;
+  feed.sort((a, b) => b.time.getTime() - a.time.getTime());
+  for (const n of feed) n.timeLabel = relativeDayLabel(n.time, now);
+
+  const unreadCount = feed.filter((n) => n.unread).length;
 
   return (
     <div className="max-w-[760px]">
@@ -229,7 +254,7 @@ export default async function StudentNotificationsPage() {
       </div>
 
       <div className="overflow-hidden rounded-[3px] border border-border">
-        {notices.map((n) => (
+        {feed.map((n) => (
           <div
             key={n.key}
             className={`grid grid-cols-[4px_1fr_auto] items-start gap-4 border-b border-border px-[22px] py-5 last:border-b-0 ${
@@ -250,7 +275,7 @@ export default async function StudentNotificationsPage() {
             {n.unread && <span className="mt-1.5 h-[9px] w-[9px] rounded-full bg-red-600" />}
           </div>
         ))}
-        {notices.length === 0 && <p className="px-[22px] py-10 text-center text-muted">Nothing here yet.</p>}
+        {feed.length === 0 && <p className="px-[22px] py-10 text-center text-muted">Nothing here yet.</p>}
       </div>
     </div>
   );

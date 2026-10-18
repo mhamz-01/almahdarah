@@ -35,6 +35,7 @@ export default async function StudentPunchPage() {
   const now = new Date();
   const stats = computeStudentStats(student, attendance, now);
   const todayIso = now.toISOString().slice(0, 10);
+  const joinIso = student.created_at.slice(0, 10);
   const todayDay = WEEKDAY_BY_UTC_INDEX[now.getUTCDay()];
   const todayClass = todayDay ? (schedule.find((s) => s.day === todayDay) ?? null) : null;
   const alreadyPunched = attendance.some((a) => a.class_date === todayIso && a.status === "present");
@@ -50,9 +51,10 @@ export default async function StudentPunchPage() {
 
   const weekGroups: WeekGroup[] = stats.weeks.map((w, wi) => ({
     label: wi === 0 ? "This week" : w.range,
-    classes: schedule.map((slot, i) => {
+    classes: schedule.flatMap((slot, i) => {
       const cell = w.cells[i];
       const iso = addDaysIso(w.startDate, i);
+      if (iso < joinIso) return [];
       const isToday = iso === todayIso;
       let status: WeekClass["status"];
       if (slot.status !== "scheduled") status = "cancelled";
@@ -60,7 +62,7 @@ export default async function StudentPunchPage() {
       else if (cell?.status === "absent") status = "missed";
       else if (isToday) status = "today";
       else status = iso > todayIso ? "upcoming" : "missed";
-      return {
+      return [{
         key: `${w.startDate}-${slot.id}`,
         iso,
         day: slot.day,
@@ -70,9 +72,9 @@ export default async function StudentPunchPage() {
         teacher: slot.teacher,
         status,
         isToday,
-      };
+      }];
     }),
-  }));
+  })).filter((g) => g.classes.length > 0);
 
   return (
     <div className="max-w-[760px]">

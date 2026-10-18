@@ -31,7 +31,7 @@ export function OptionSelect({ value, onChange, options, emptyLabel, placeholder
     <Select value={value === "" ? (emptyLabel ? EMPTY : "") : value} onValueChange={(v) => onChange(v === EMPTY ? "" : v)} disabled={disabled}>
       <SelectTrigger
         aria-label={ariaLabel}
-        className={cn("h-8 w-full gap-1.5 rounded-full border px-3 text-[12.5px] font-semibold", className)}
+        className={cn("h-10 w-full gap-1.5 md:h-8 rounded-full border px-3 text-[12.5px] font-semibold", className)}
       >
         <SelectValue placeholder={placeholder ?? emptyLabel} />
       </SelectTrigger>

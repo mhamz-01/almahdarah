@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { readApiJson } from "@/lib/read-api-json";
 import { isValidEmail } from "@/lib/email/prefs";
 
-interface EmailRemindersProps {
+export interface EmailRemindersProps {
   initialEmail: string;
   initialDigest: boolean;
   initialReminder: boolean;
@@ -43,11 +43,11 @@ function Switch({ checked, onChange, label, disabled }: { checked: boolean; onCh
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:outline-none disabled:opacity-50 ${
+      className={`relative h-7 w-12 shrink-0 rounded-full transition-colors duration-300 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:outline-none disabled:opacity-50 ${
         checked ? "bg-primary" : "bg-border-strong"
       }`}
     >
-      <span className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : ""}`} />
+      <span className={`absolute top-0.5 left-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${checked ? "translate-x-5" : ""}`} />
     </button>
   );
 }
@@ -154,7 +154,7 @@ export function EmailReminders({ initialEmail, initialDigest, initialReminder, i
     "h-11 w-full rounded-xl border-[1.5px] border-border-strong bg-surface px-[15px] text-[14.5px] text-ink transition-colors placeholder:text-muted focus:border-primary focus:shadow-[0_0_0_4px_rgba(17,130,163,0.16)] focus:outline-none";
 
   return (
-    <div className="mt-6 flex flex-col gap-3 sm:gap-4">
+    <div className="flex flex-col gap-3 sm:gap-4">
       <div aria-live="polite" className="min-h-0">
         {notice && (
           <p

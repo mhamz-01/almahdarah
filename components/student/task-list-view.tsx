@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Segmented } from "@/components/ui/segmented";
+import { Collapse } from "@/components/ui/collapse";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { colorForSubject, dueMetaFor } from "@/lib/tasks";
 import {
@@ -135,30 +137,22 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
 
       {/* Toolbar: one primary switch, search, and a single Filters button */}
       <div className="flex flex-wrap items-center gap-3">
-        <div role="tablist" aria-label="Task status" className="inline-flex rounded-full bg-surface-2 p-1">
-          {(
-            [
-              ["todo", "To do", todoCount],
-              ["done", "Done", doneCount],
-            ] as const
-          ).map(([key, label, count]) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={status === key}
-              onClick={() => setStatus(key)}
-              className={`h-9 rounded-full px-4 text-[13px] font-bold transition-colors ${
-                status === key ? "bg-ink text-bg" : "text-muted hover:text-ink"
-              }`}
-            >
-              {label} <span className="opacity-70">{count}</span>
-            </button>
-          ))}
-        </div>
+        <Segmented
+          ariaLabel="Task status"
+          value={status}
+          onChange={setStatus}
+          options={[
+            { key: "todo", label: <>To do <span className="opacity-70">{todoCount}</span></> },
+            { key: "done", label: <>Done <span className="opacity-70">{doneCount}</span></> },
+          ]}
+          className="w-full bg-surface-2 p-1 sm:w-auto"
+          thumbClass="bg-ink"
+          activeClass="text-bg"
+          buttonClass="h-10 text-[13px] sm:h-9"
+        />
 
         {!simple && (
-        <label className="relative order-last min-w-[200px] flex-1 sm:order-none">
+        <label className="relative order-last w-full flex-1 sm:order-none sm:w-auto sm:min-w-[200px]">
           <span className="sr-only">Search tasks</span>
           <svg viewBox="0 0 24 24" className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <circle cx="11" cy="11" r="7" />
@@ -169,7 +163,7 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search tasks"
-            className="h-10 w-full rounded-full border border-border-strong bg-surface pr-4 pl-10 text-[13.5px] text-ink outline-none placeholder:text-muted focus:border-primary"
+            className="h-11 w-full rounded-full border border-border-strong bg-surface pr-4 pl-10 text-[16px] sm:h-10 sm:text-[13.5px] text-ink outline-none placeholder:text-muted focus:border-primary"
           />
         </label>
         )}
@@ -179,7 +173,7 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
             type="button"
             aria-expanded={panelOpen}
             onClick={() => setPanelOpen((o) => !o)}
-            className={`flex h-10 items-center gap-2 rounded-full border px-4 text-[13px] font-bold transition-colors ${
+            className={`flex h-11 items-center gap-2 rounded-full border px-4 text-[13px] font-bold transition-colors sm:h-10 ${
               panelOpen || activeFilterCount > 0
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border-strong bg-surface text-text hover:border-ink"
@@ -199,7 +193,8 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
       </div>
 
       {/* Filter panel — only the options that actually exist for this student */}
-      {!simple && panelOpen && hasFilterOptions && (
+      {!simple && hasFilterOptions && (
+        <Collapse open={panelOpen}>
         <div className="mt-3 flex flex-col gap-4 rounded-[18px] border border-border bg-surface p-4">
           {hasBothSources && (
             <div>
@@ -268,10 +263,12 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
             </div>
           )}
         </div>
+        </Collapse>
       )}
 
       {/* Active filters, each removable with one click */}
-      {!simple && activeFilterCount > 0 && (
+      {!simple && (
+        <Collapse open={activeFilterCount > 0}>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {source !== "all" && (
             <button
@@ -299,6 +296,7 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
             Clear all
           </button>
         </div>
+        </Collapse>
       )}
 
       {/* Summary */}
@@ -353,7 +351,7 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
           )}
         </div>
       ) : (
-        <div className="mt-4 flex flex-col gap-6">
+        <div className="mt-4 flex flex-col gap-6 pb-6">
           {sections.map((section) => {
             const isCollapsed = collapsed.has(section.bucket) && status === "todo";
             const urgent = section.bucket === "overdue";
@@ -377,28 +375,28 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
                   )}
                 </button>
 
-                {!isCollapsed && (
+                <Collapse open={!isCollapsed}>
                   <ul className="overflow-hidden rounded-[18px] border border-border bg-surface">
                     {section.items.map((item) => {
                       const sub = subjectOf(item);
                       const due = item.done ? null : dueMetaFor(item.due, now);
                       return (
-                        <li key={item.key} className="flex items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 hover:bg-bg">
+                        <li key={item.key} className="flex items-center gap-1 border-b border-border py-2.5 pr-3 pl-1 last:border-b-0 hover:bg-bg sm:gap-2 sm:py-3 sm:pr-4 sm:pl-2">
                           <button
                             type="button"
                             onClick={() => onToggle(item)}
                             disabled={busyKey === item.key}
                             aria-label={item.done ? `Mark "${item.title}" as to do` : `Mark "${item.title}" as done`}
-                            className="group/check shrink-0"
+                            className="group/check flex h-11 w-11 shrink-0 items-center justify-center"
                           >
                             <Check checked={item.done} busy={busyKey === item.key} />
                           </button>
-                          <button type="button" onClick={() => setOpenKey(item.key)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                          <button type="button" onClick={() => setOpenKey(item.key)} className="flex min-w-0 flex-1 items-center gap-3 py-0.5 text-left">
                             <span className="min-w-0 flex-1">
-                              <span className={`block truncate text-[14.5px] font-semibold ${item.done ? "text-muted line-through" : "text-ink"}`}>
+                              <span className={`line-clamp-2 block text-[15px] leading-[1.3] font-semibold sm:truncate sm:text-[14.5px] ${item.done ? "text-muted line-through" : "text-ink"}`}>
                                 {item.title}
                               </span>
-                              <span className="mt-0.5 flex items-center gap-1.5 text-[12px] text-muted">
+                              <span className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-muted">
                                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: subjectColor(sub) }} />
                                 <span className="truncate">{sub}</span>
                                 <span aria-hidden>·</span>
@@ -412,17 +410,18 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
                                     {item.attachments.length}
                                   </span>
                                 )}
+                                {due && <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold sm:hidden ${due.badgeClass}`}>{due.label}</span>}
                               </span>
                             </span>
                             {due && (
-                              <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${due.badgeClass}`}>{due.label}</span>
+                              <span className={`hidden shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold sm:inline ${due.badgeClass}`}>{due.label}</span>
                             )}
                           </button>
                         </li>
                       );
                     })}
                   </ul>
-                )}
+                </Collapse>
               </section>
             );
           })}
@@ -431,7 +430,7 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
 
       {/* Detail panel */}
       <Dialog open={openItem !== null} onOpenChange={(o) => !o && setOpenKey(null)}>
-        <DialogContent className="thin-scroll top-0 right-0 left-auto h-full max-h-none w-full max-w-[460px] translate-x-0 translate-y-0 overflow-y-auto rounded-none border-y-0 border-r-0 sm:rounded-l-[22px]">
+        <DialogContent className="thin-scroll top-0 right-0 left-auto h-dvh max-h-none w-full max-w-[460px] p-5 pb-[max(env(safe-area-inset-bottom),20px)] sm:p-8 translate-x-0 translate-y-0 overflow-y-auto rounded-none border-y-0 border-r-0 sm:rounded-l-[22px]">
           {openItem && (
             <TaskDetail
               item={openItem}
@@ -530,14 +529,14 @@ function TaskDetail({
           type="button"
           onClick={onToggle}
           disabled={busy}
-          className={`h-11 rounded-full px-6 text-[14px] font-bold transition disabled:opacity-60 ${
+          className={`h-12 w-full rounded-full px-6 text-[14px] font-bold transition disabled:opacity-60 sm:h-11 sm:w-auto ${
             item.done ? "border border-border-strong text-ink hover:border-ink" : "bg-green text-white hover:brightness-[1.07]"
           }`}
         >
           {busy ? "Saving…" : item.done ? "Move back to to do" : "Mark as done"}
         </button>
         {item.source === "personal" && (
-          <span className="flex gap-4 text-[13px] font-bold">
+          <span className="flex gap-5 text-[14px] font-bold sm:gap-4 sm:text-[13px]">
             <button type="button" onClick={onEdit} className="text-primary hover:underline">
               Edit
             </button>

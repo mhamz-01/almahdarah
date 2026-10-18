@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import type { EmailRemindersProps } from "@/components/student/email-reminders";
+import { SettingsModal, type SettingsSection, type StudentProfile } from "@/components/student/settings-modal";
 
 interface StudentPortalShellProps {
-  student: { name: string; username: string; avatarColor: string };
+  student: StudentProfile;
+  emailPrefs: EmailRemindersProps;
   unreadCount: number;
   children: React.ReactNode;
 }
@@ -19,7 +21,6 @@ const NAV_ITEMS = [
   { href: "/student/attendance", num: "04", label: "Attendance" },
   { href: "/student/notifications", num: "05", label: "Notifications", withBadge: true },
   { href: "/student/punch", num: "06", label: "Punch today's class" },
-  { href: "/student/reminders", num: "07", label: "Email reminders" },
 ];
 
 function Collapse({ open, children }: { open: boolean; children: React.ReactNode }) {
@@ -44,13 +45,16 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function StudentPortalShell({ student, unreadCount, children }: StudentPortalShellProps) {
+export function StudentPortalShell({ student, emailPrefs, unreadCount, children }: StudentPortalShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isNarrow, setIsNarrow] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSection, setSettingsSection] = useState<SettingsSection>("profile");
+  const settingsParam = useSearchParams().get("settings");
 
   // Close the mobile drawer on navigation — adjusted during render (React's
   // recommended pattern for resetting state when a prop changes) rather
@@ -59,6 +63,16 @@ export function StudentPortalShell({ student, unreadCount, children }: StudentPo
   if (pathname !== prevPathname) {
     setPrevPathname(pathname);
     setMobileOpen(false);
+  }
+
+  // Links such as /student/reminders (used in emails) land here with ?settings=email.
+  const [prevSettingsParam, setPrevSettingsParam] = useState<string | null>(null);
+  if (settingsParam !== prevSettingsParam) {
+    setPrevSettingsParam(settingsParam);
+    if (settingsParam === "email") {
+      setSettingsSection("email");
+      setSettingsOpen(true);
+    }
   }
 
   useEffect(() => {
@@ -140,6 +154,18 @@ export function StudentPortalShell({ student, unreadCount, children }: StudentPo
                 {student.username}
               </span>
             </span>
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Settings"
+              title="Settings"
+              className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-ink"
+            >
+              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+              </svg>
+            </button>
           </div>
         </Collapse>
 
@@ -181,6 +207,15 @@ export function StudentPortalShell({ student, unreadCount, children }: StudentPo
           {sidebarOpen ? (signingOut ? "Signing out…" : "Sign out") : "⏻"}
         </button>
       </aside>
+
+      <SettingsModal
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+        section={settingsSection}
+        onSectionChange={setSettingsSection}
+        profile={student}
+        emailPrefs={emailPrefs}
+      />
 
       <main className="px-[22px] pt-[28px] pb-[70px] sm:px-[52px] sm:pt-[52px]">
         {isNarrow && (

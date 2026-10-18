@@ -4,6 +4,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { buildTaskItems, type TaskItem } from "@/lib/task-items";
 import { toIso } from "@/lib/task-plan";
 import type { BoardCardRow, StudentTaskRow, TaskRow } from "@/lib/types";
+import { Segmented } from "@/components/ui/segmented";
 import { TaskListView } from "@/components/student/task-list-view";
 import { MyTasksTable } from "@/components/student/my-tasks-table";
 import { WeeklyPlanner } from "@/components/student/weekly-planner";
@@ -203,25 +204,27 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
 
       {current === null ? (
         /* Landing: nothing is listed until the student picks where to look */
-        <div className="mx-auto flex min-h-[52vh] max-w-[760px] flex-col items-center justify-center py-10 text-center">
+        <div className="fade-in mx-auto flex max-w-[760px] flex-col items-center py-8 text-center sm:min-h-[52vh] sm:justify-center sm:py-10">
           <h2 className="text-[clamp(18px,2.4vw,24px)] font-bold text-ink">What would you like to open?</h2>
           <p className="mt-1.5 text-[14px] text-muted">Choose one to see your tasks.</p>
-          <div className="mt-8 grid w-full gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid w-full gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-4">
             {sectionButtons.map((b) => (
               <button
                 key={b.key}
                 type="button"
                 onClick={() => setSection(b.key)}
-                className="group flex flex-col items-center rounded-[24px] border-2 border-border bg-surface px-6 py-9 transition-colors hover:border-primary hover:bg-primary/[0.04] focus-visible:border-primary focus-visible:outline-none"
+                className="group flex items-center gap-4 rounded-[22px] border-2 border-border bg-surface p-4 text-left transition-colors sm:flex-col sm:gap-0 sm:rounded-[24px] sm:px-6 sm:py-9 sm:text-center hover:border-primary hover:bg-primary/[0.04] focus-visible:border-primary focus-visible:outline-none"
               >
                 <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
                   <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                     <path d={b.icon} />
                   </svg>
                 </span>
-                <span className="mt-5 text-[18px] font-bold text-ink">{b.title}</span>
-                <span className="mt-1 text-[13px] text-muted">{b.hint}</span>
-                <span className="mt-5 rounded-full bg-surface-2 px-3.5 py-1 font-mono text-[11.5px] text-text">
+                <span className="min-w-0 flex-1 sm:contents">
+                  <span className="block text-[17px] font-bold text-ink sm:mt-5 sm:text-[18px]">{b.title}</span>
+                  <span className="mt-0.5 block text-[13px] text-muted sm:mt-1">{b.hint}</span>
+                </span>
+                <span className="shrink-0 rounded-full bg-surface-2 px-3 py-1 font-mono text-[11.5px] text-text sm:mt-5 sm:px-3.5">
                   {b.open} to do
                 </span>
               </button>
@@ -234,16 +237,17 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
             <button
               type="button"
               onClick={() => setSection(null)}
-              className="flex h-9 items-center gap-1.5 rounded-full border border-border-strong bg-surface pr-4 pl-3 text-[13px] font-bold text-ink hover:border-ink"
+              className="flex h-10 items-center gap-1.5 rounded-full border border-border-strong bg-surface pr-4 pl-3 text-[13px] font-bold text-ink hover:border-ink"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d="m15 6-6 6 6 6" />
               </svg>
               Back
             </button>
+            <h2 className="min-w-0 truncate text-[16px] font-bold text-ink">{current.title}</h2>
           </div>
 
-          <div className="mt-3 sm:mt-6">
+          <div key={section} className="fade-in mt-3 sm:mt-6">
         {section === "teacher" ? (
           <div className="max-w-[860px]">
             <TaskListView
@@ -263,27 +267,19 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
         ) : (
           <>
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3 sm:mb-5">
-            <div role="tablist" aria-label="How to view my tasks" className="inline-flex rounded-full border border-border-strong bg-surface p-1">
-              {(
-                [
-                  ["table", "Table"],
-                  ["plan", "Weekly plan"],
-                ] as const
-              ).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  role="tab"
-                  aria-selected={mineView === key}
-                  onClick={() => setMineView(key)}
-                  className={`h-8 rounded-full px-4 text-[12.5px] font-bold transition-colors ${
-                    mineView === key ? "bg-ink text-bg" : "text-muted hover:text-ink"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              ariaLabel="How to view my tasks"
+              value={mineView}
+              onChange={setMineView}
+              options={[
+                { key: "table", label: "Table" },
+                { key: "plan", label: "Weekly plan" },
+              ]}
+              className="min-w-0 flex-1 border border-border-strong bg-surface p-1 sm:flex-none"
+              thumbClass="bg-ink"
+              activeClass="text-bg"
+              buttonClass="h-9 text-[13px] sm:h-8 sm:text-[12.5px]"
+            />
             <button
               type="button"
               onClick={() => openCreate()}
@@ -295,7 +291,7 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
               type="button"
               onClick={() => openCreate()}
               aria-label="Add a task"
-              className="fixed right-4 bottom-[max(env(safe-area-inset-bottom),16px)] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-[var(--shadow-lg)] transition active:scale-95 sm:hidden"
+              className="fixed right-4 bottom-[calc(env(safe-area-inset-bottom)+16px)] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-[var(--shadow-lg)] transition active:scale-95 sm:hidden"
             >
               <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden>
                 <path d="M12 5v14M5 12h14" />
@@ -303,6 +299,7 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
             </button>
             </div>
 
+            <div key={mineView} className="fade-in">
             {mineView === "table" ? (
               <MyTasksTable
                 tasks={personal}
@@ -329,6 +326,7 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
                 onCreate={openCreate}
               />
             )}
+            </div>
           </>
         )}
       </div>

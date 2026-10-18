@@ -8,6 +8,12 @@ export const dynamic = "force-dynamic";
 
 const WEEKDAYS: Weekday[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
+function addDaysIso(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 function weekLabel(index: number, startDate: string) {
   if (index === 0) return "This week";
   if (index === 1) return "Last week";
@@ -33,18 +39,20 @@ export default async function StudentAttendancePage() {
   const schedule = (scheduleRes.data as ClassScheduleRow[] | null) ?? [];
   const scheduleByDay = new Map(schedule.map((s) => [s.day, s]));
   const stats = computeStudentStats(student, attendance, new Date());
+  const joinIso = student.created_at.slice(0, 10);
 
   const weeksRecord = stats.weeks.map((week, weekIndex) => {
     const days = WEEKDAYS.map((day, i) => {
       const cell = week.cells[i];
       const slot = scheduleByDay.get(day);
+      const beforeJoin = addDaysIso(week.startDate, i) < joinIso;
       const cancelledThisWeek = weekIndex === 0 && slot && slot.status !== "scheduled";
       const present = !cancelledThisWeek && cell.status === "present";
       const absent = !cancelledThisWeek && cell.status === "absent";
       return {
         day: day.slice(0, 3),
         subject: slot?.subject ?? day,
-        statusLabel: cancelledThisWeek ? "Cancelled" : present ? "Present" : absent ? "Missed" : "Not held yet",
+        statusLabel: beforeJoin ? "Before you joined" : cancelledThisWeek ? "Cancelled" : present ? "Present" : absent ? "Missed" : "Not held yet",
         statusColorClass: cancelledThisWeek ? "text-[#8a6b12]" : present ? "text-green" : absent ? "text-red-600" : "text-muted",
         dotClass: present ? "bg-green border-green" : absent ? "bg-transparent border-red-600" : "bg-transparent border-border-strong",
         cellBg: cancelledThisWeek ? "bg-gold/10" : absent ? "bg-red-600/5" : "bg-surface",
@@ -53,7 +61,7 @@ export default async function StudentAttendancePage() {
 
     const missedList = days.filter((d) => d.statusLabel === "Missed").map((d) => `${d.day} ${d.subject}`);
     const attendedCount = days.filter((d) => d.statusLabel === "Present").length;
-    const held = days.filter((d) => d.statusLabel !== "Not held yet").length;
+    const held = days.filter((d) => d.statusLabel !== "Not held yet" && d.statusLabel !== "Before you joined").length;
     const clean = held > 0 && missedList.length === 0;
 
     return {

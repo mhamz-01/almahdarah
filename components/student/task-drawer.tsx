@@ -69,7 +69,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 export function TaskDrawer({ task, onClose, ...rest }: TaskDrawerProps) {
   return (
     <Sheet open={task !== null} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="right" className="p-0 sm:max-w-[480px]">
+      <SheetContent side="right" className="w-full p-0 sm:w-[88%] sm:max-w-[480px]">
         {task && <DrawerBody key={task.id} task={task} onClose={onClose} {...rest} />}
       </SheetContent>
     </Sheet>

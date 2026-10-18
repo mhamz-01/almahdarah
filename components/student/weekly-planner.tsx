@@ -359,7 +359,7 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
               type="button"
               onClick={() => goToWeek(addDays(start, -7))}
               aria-label="Previous week"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border-strong text-ink hover:border-ink"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border-strong text-ink hover:border-ink"
             >
               <Chevron dir="left" />
             </button>
@@ -371,7 +371,7 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
               type="button"
               onClick={() => goToWeek(addDays(start, 7))}
               aria-label="Next week"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-border-strong text-ink hover:border-ink"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border-strong text-ink hover:border-ink"
             >
               <Chevron dir="right" />
             </button>
@@ -437,13 +437,19 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
               </svg>
             </span>
           </button>
-          <div className={`${trayOpen ? "block" : "hidden"} md:block`}>
+          <div
+            className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out motion-reduce:transition-none md:grid-rows-[1fr] md:opacity-100 ${
+              trayOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+            }`}
+          >
+          <div className="min-h-0 overflow-hidden">
             <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {tray.items.map((task) => (
                 <Chip key={task.id} {...chipProps(task)} alwaysMenu />
               ))}
             </ul>
             <Pager page={tray.page} pages={tray.pages} from={tray.from} to={tray.to} total={unplanned.length} onPage={setTrayPage} className="mt-3" />
+          </div>
           </div>
         </section>
       )}

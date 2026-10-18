@@ -117,7 +117,7 @@ export default async function StudentHomePage() {
     const iso = addDaysIso(weekStart, i);
     const cell = thisWeek.cells.find((c) => c.day === day);
     let state: DayState;
-    if (!slot) state = "none";
+    if (!slot || iso < student.created_at.slice(0, 10)) state = "none";
     else if (slot.status !== "scheduled") state = "cancelled";
     else if (cell?.status === "present") state = "present";
     else if (cell?.status === "absent") state = "absent";
@@ -129,7 +129,7 @@ export default async function StudentHomePage() {
       subject: slot?.subject ?? null,
       time: slot?.start_time ?? null,
       state,
-      held: !!slot && slot.status === "scheduled",
+      held: !!slot && slot.status === "scheduled" && iso >= student.created_at.slice(0, 10),
       passed: iso < todayIso,
     };
   });
@@ -244,14 +244,18 @@ export default async function StudentHomePage() {
     subject: string | null;
     due: string | null;
     created: string;
+    description: string;
+    kind: "assigned" | "personal";
+    attachments: number;
+    planned: string | null;
   }
   const candidates: HomeTask[] = [
     ...((assignedRes.data as TaskRow[] | null) ?? [])
       .filter((t) => !boardDone.has(`a${t.id}`))
-      .map((t) => ({ key: `a${t.id}`, title: t.title, subject: t.subject, due: t.due_date, created: t.created_at })),
+      .map((t) => ({ key: `a${t.id}`, title: t.title, subject: t.subject, due: t.due_date, created: t.created_at, description: t.description, kind: "assigned" as const, attachments: t.attachment_url ? 1 : 0, planned: null })),
     ...((personalRes.data as StudentTaskRow[] | null) ?? [])
       .filter((t) => !t.completed && !boardDone.has(`p${t.id}`))
-      .map((t) => ({ key: `p${t.id}`, title: t.title, subject: t.subject, due: t.due_date, created: t.created_at })),
+      .map((t) => ({ key: `p${t.id}`, title: t.title, subject: t.subject, due: t.due_date, created: t.created_at, description: t.description, kind: "personal" as const, attachments: t.attachments?.length ?? 0, planned: t.planned_date })),
   ];
   // Due by Sunday (overdue included), or undated and added this week.
   const weekTasks = candidates
@@ -276,6 +280,12 @@ export default async function StudentHomePage() {
       color: colorForSubject(t.subject ?? t.title),
       dueLabel: due?.label ?? null,
       dueBadgeClass: due?.badgeClass ?? null,
+      description: t.description.trim(),
+      kind: t.kind,
+      attachments: t.attachments,
+      planned: t.planned
+        ? new Date(`${t.planned}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" })
+        : null,
     };
   });
 
