@@ -21,6 +21,8 @@ interface TaskListViewProps {
   onEdit: (item: TaskItem) => void;
   onDelete: (item: TaskItem) => void;
   onCreate: () => void;
+  /** Teacher-task mode: just the To do / Done switch and the list — no search or filters. */
+  simple?: boolean;
 }
 
 type Status = "todo" | "done";
@@ -59,12 +61,14 @@ function Check({ checked, busy }: { checked: boolean; busy: boolean }) {
   );
 }
 
-export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit, onDelete, onCreate }: TaskListViewProps) {
+export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit, onDelete, onCreate, simple = false }: TaskListViewProps) {
   const [status, setStatus] = useState<Status>("todo");
   const [source, setSource] = useState<Source>("all");
   const [subject, setSubject] = useState<string>("all");
   const [collapsed, setCollapsed] = useState<Set<DueBucket>>(new Set());
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const todoCount = items.filter((i) => !i.done).length;
   const doneCount = items.length - todoCount;
@@ -82,7 +86,22 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
 
   // If the chosen subject has no tasks left in this view, fall back to "all".
   const activeSubject = subject !== "all" && !subjects.some(([s]) => s === subject) ? "all" : subject;
-  const visible = bySourceStatus.filter((i) => activeSubject === "all" || subjectOf(i) === activeSubject);
+  const needle = query.trim().toLowerCase();
+  const visible = bySourceStatus.filter(
+    (i) =>
+      (activeSubject === "all" || subjectOf(i) === activeSubject) &&
+      (!needle || `${i.title} ${i.subject ?? ""} ${i.description}`.toLowerCase().includes(needle)),
+  );
+
+  const hasBothSources = items.some((i) => i.source === "assigned") && items.some((i) => i.source === "personal");
+  const hasFilterOptions = hasBothSources || subjects.length > 1 || activeSubject !== "all";
+  const activeFilterCount = (source !== "all" ? 1 : 0) + (activeSubject !== "all" ? 1 : 0);
+  const anyFilter = activeFilterCount > 0 || needle !== "";
+
+  function clearFilters() {
+    setSource("all");
+    setSubject("all");
+  }
 
   const sections = useMemo(() => {
     if (status === "done") {
@@ -114,8 +133,8 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
         <p className="mb-5 rounded-[14px] border border-red-600/30 bg-red-600/10 px-4 py-3 text-sm text-red-600">{loadError}</p>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* Toolbar: one primary switch, search, and a single Filters button */}
+      <div className="flex flex-wrap items-center gap-3">
         <div role="tablist" aria-label="Task status" className="inline-flex rounded-full bg-surface-2 p-1">
           {(
             [
@@ -138,63 +157,147 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
           ))}
         </div>
 
-        <div role="group" aria-label="Task source" className="inline-flex gap-1 text-[12.5px] font-bold">
-          {(
-            [
-              ["all", "All"],
-              ["assigned", "From teachers"],
-              ["personal", "Mine"],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={source === key}
-              onClick={() => setSource(key)}
-              className={`h-8 rounded-full px-3 transition-colors ${
-                source === key ? "bg-primary/12 text-primary" : "text-muted hover:text-ink"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
+        {!simple && (
+        <label className="relative order-last min-w-[200px] flex-1 sm:order-none">
+          <span className="sr-only">Search tasks</span>
+          <svg viewBox="0 0 24 24" className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-muted" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search tasks"
+            className="h-10 w-full rounded-full border border-border-strong bg-surface pr-4 pl-10 text-[13.5px] text-ink outline-none placeholder:text-muted focus:border-primary"
+          />
+        </label>
+        )}
 
-      {subjects.length > 0 && (
-        <div className="no-scrollbar -mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1" role="group" aria-label="Filter by subject">
+        {!simple && hasFilterOptions && (
           <button
             type="button"
-            aria-pressed={activeSubject === "all"}
-            onClick={() => setSubject("all")}
-            className={`flex h-9 shrink-0 items-center rounded-full border px-3.5 text-[12.5px] font-bold transition-colors ${
-              activeSubject === "all" ? "border-ink bg-ink text-bg" : "border-border-strong bg-surface text-text hover:border-ink"
+            aria-expanded={panelOpen}
+            onClick={() => setPanelOpen((o) => !o)}
+            className={`flex h-10 items-center gap-2 rounded-full border px-4 text-[13px] font-bold transition-colors ${
+              panelOpen || activeFilterCount > 0
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border-strong bg-surface text-text hover:border-ink"
             }`}
           >
-            All subjects
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] text-white">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
-          {subjects.map(([name, count]) => {
-            const color = subjectColor(name);
-            const active = activeSubject === name;
-            return (
-              <button
-                key={name}
-                type="button"
-                aria-pressed={active}
-                onClick={() => setSubject(name)}
-                className="flex h-9 shrink-0 items-center gap-2 rounded-full border px-3.5 text-[12.5px] font-bold transition-colors"
-                style={
-                  active
-                    ? { borderColor: color, background: color, color: "#fff" }
-                    : { borderColor: "var(--border-strong)", background: "var(--surface)", color: "var(--text)" }
-                }
-              >
-                {!active && <span className="h-2 w-2 rounded-full" style={{ background: color }} />}
-                {name}
-                <span className="opacity-70">{count}</span>
-              </button>
-            );
-          })}
+        )}
+      </div>
+
+      {/* Filter panel — only the options that actually exist for this student */}
+      {!simple && panelOpen && hasFilterOptions && (
+        <div className="mt-3 flex flex-col gap-4 rounded-[18px] border border-border bg-surface p-4">
+          {hasBothSources && (
+            <div>
+              <div className="mb-2 text-[11px] font-bold tracking-[0.12em] text-muted uppercase">Added by</div>
+              <div role="group" aria-label="Task source" className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["all", "Everyone"],
+                    ["assigned", "Teachers"],
+                    ["personal", "Me"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={source === key}
+                    onClick={() => setSource(key)}
+                    className={`h-8 rounded-full border px-3.5 text-[12.5px] font-bold transition-colors ${
+                      source === key ? "border-ink bg-ink text-bg" : "border-border-strong text-text hover:border-ink"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {subjects.length > 1 && (
+            <div>
+              <div className="mb-2 text-[11px] font-bold tracking-[0.12em] text-muted uppercase">Subject</div>
+              <div role="group" aria-label="Filter by subject" className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  aria-pressed={activeSubject === "all"}
+                  onClick={() => setSubject("all")}
+                  className={`h-8 rounded-full border px-3.5 text-[12.5px] font-bold transition-colors ${
+                    activeSubject === "all" ? "border-ink bg-ink text-bg" : "border-border-strong text-text hover:border-ink"
+                  }`}
+                >
+                  All
+                </button>
+                {subjects.map(([name, count]) => {
+                  const color = subjectColor(name);
+                  const active = activeSubject === name;
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setSubject(name)}
+                      className="flex h-8 items-center gap-2 rounded-full border px-3.5 text-[12.5px] font-bold transition-colors"
+                      style={
+                        active
+                          ? { borderColor: color, background: color, color: "#fff" }
+                          : { borderColor: "var(--border-strong)", color: "var(--text)" }
+                      }
+                    >
+                      {!active && <span className="h-2 w-2 rounded-full" style={{ background: color }} />}
+                      {name}
+                      <span className="opacity-70">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Active filters, each removable with one click */}
+      {!simple && activeFilterCount > 0 && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          {source !== "all" && (
+            <button
+              type="button"
+              onClick={() => setSource("all")}
+              className="flex h-7 items-center gap-1.5 rounded-full bg-primary/10 pr-2 pl-3 text-[12px] font-bold text-primary hover:bg-primary/15"
+            >
+              {source === "assigned" ? "From teachers" : "Added by me"}
+              <span aria-hidden className="text-[15px] leading-none">×</span>
+              <span className="sr-only">Remove filter</span>
+            </button>
+          )}
+          {activeSubject !== "all" && (
+            <button
+              type="button"
+              onClick={() => setSubject("all")}
+              className="flex h-7 items-center gap-1.5 rounded-full bg-primary/10 pr-2 pl-3 text-[12px] font-bold text-primary hover:bg-primary/15"
+            >
+              {activeSubject}
+              <span aria-hidden className="text-[15px] leading-none">×</span>
+              <span className="sr-only">Remove filter</span>
+            </button>
+          )}
+          <button type="button" onClick={clearFilters} className="text-[12px] font-semibold text-muted underline hover:text-ink">
+            Clear all
+          </button>
         </div>
       )}
 
@@ -210,15 +313,35 @@ export function TaskListView({ items, now, busyKey, loadError, onToggle, onEdit,
       {sections.length === 0 ? (
         <div className="mt-6 rounded-[22px] border border-dashed border-border-strong px-6 py-14 text-center">
           <div className="text-[16px] font-bold text-ink">
-            {items.length === 0 ? "No tasks yet" : status === "todo" ? "You're all caught up" : "Nothing completed yet"}
+            {items.length === 0
+              ? "No tasks yet"
+              : anyFilter
+                ? "No matching tasks"
+                : status === "todo"
+                  ? "You're all caught up"
+                  : "Nothing completed yet"}
           </div>
           <p className="mx-auto mt-2 max-w-[40ch] text-[13.5px] text-muted">
             {items.length === 0
               ? "Tasks from your teachers will show up here. You can add your own too."
-              : status === "todo"
-                ? "No open tasks match these filters."
-                : "Tick off a task and it will be kept here."}
+              : anyFilter
+                ? "No tasks match your search or filters."
+                : status === "todo"
+                  ? "Nothing is waiting on you right now."
+                  : "Tick off a task and it will be kept here."}
           </p>
+          {items.length > 0 && anyFilter && (
+            <button
+              type="button"
+              onClick={() => {
+                clearFilters();
+                setQuery("");
+              }}
+              className="mt-4 text-[13px] font-bold text-primary hover:underline"
+            >
+              Clear search and filters
+            </button>
+          )}
           {items.length === 0 && (
             <button
               type="button"

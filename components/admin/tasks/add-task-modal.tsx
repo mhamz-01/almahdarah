@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { uploadFilesDirect } from "@/lib/direct-upload-client";
+import { readApiJson } from "@/lib/read-api-json";
+import { ADMIN_TASK_BUCKET } from "@/lib/upload-targets";
 import type { TaskRow } from "@/lib/types";
 
 const inputClasses =
@@ -49,10 +52,14 @@ export function AddTaskModal({ open, onOpenChange, subjectSuggestions, onCreated
       form.set("title", title.trim());
       form.set("description", description.trim());
       form.set("due_date", dueDate);
-      if (file) form.set("file", file);
+      // The file goes straight to Supabase Storage; the task request only carries its path.
+      if (file) {
+        const [uploaded] = await uploadFilesDirect("/api/admin/tasks/upload-url", ADMIN_TASK_BUCKET, [file]);
+        form.set("attachment", JSON.stringify(uploaded));
+      }
 
       const res = await fetch("/api/admin/tasks", { method: "POST", body: form });
-      const json = (await res.json()) as { ok: boolean; task?: TaskRow; error?: string };
+      const json = await readApiJson<{ ok: boolean; task?: TaskRow; error?: string }>(res);
       if (!res.ok || !json.ok || !json.task) throw new Error(json.error ?? "Request failed");
       onCreated(json.task);
       reset();

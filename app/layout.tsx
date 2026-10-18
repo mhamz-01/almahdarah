@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo_Black, Inter, JetBrains_Mono, Spectral } from "next/font/google";
+import { Archivo_Black, JetBrains_Mono, Poppins, Spectral } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { RouteLoader } from "@/components/layout/route-loader";
 import "./globals.css";
@@ -11,8 +11,8 @@ const archivoBlack = Archivo_Black({
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
@@ -47,7 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${archivoBlack.variable} ${inter.variable} ${spectral.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${archivoBlack.variable} ${poppins.variable} ${spectral.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <ThemeProvider>
           <RouteLoader />

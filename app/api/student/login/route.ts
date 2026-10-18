@@ -24,7 +24,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Invalid username or password" }, { status: 401 });
   }
 
-  await supabase.from("students").update({ last_login_at: new Date().toISOString() }).eq("id", student.id);
+  // The very first sign-in starts attendance tracking (and triggers the
+  // one-time welcome screen); later sign-ins only refresh last_login_at.
+  const now = new Date().toISOString();
+  await supabase
+    .from("students")
+    .update({ last_login_at: now, ...(student.first_login_at ? {} : { first_login_at: now }) })
+    .eq("id", student.id);
 
   const token = await createStudentSessionToken(student.id, student.username);
   const response = NextResponse.json({ ok: true });

@@ -4,6 +4,9 @@ import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AddTaskModal } from "@/components/admin/tasks/add-task-modal";
 import { colorForSubject, dueMetaFor } from "@/lib/tasks";
+import { uploadFilesDirect } from "@/lib/direct-upload-client";
+import { readApiJson } from "@/lib/read-api-json";
+import { ADMIN_TASK_BUCKET } from "@/lib/upload-targets";
 import type { TaskRow } from "@/lib/types";
 
 interface TasksAdminPanelProps {
@@ -104,11 +107,14 @@ export function TasksAdminPanel({ tasks: initialTasks, loadError, subjectSuggest
       form.set("title", draft.title.trim());
       form.set("description", draft.description.trim());
       form.set("due_date", draft.due_date);
-      if (newFile) form.set("file", newFile);
+      if (newFile) {
+        const [uploaded] = await uploadFilesDirect("/api/admin/tasks/upload-url", ADMIN_TASK_BUCKET, [newFile]);
+        form.set("attachment", JSON.stringify(uploaded));
+      }
       if (removeAttachment && !newFile) form.set("remove_attachment", "1");
 
       const res = await fetch(`/api/admin/tasks/${selected.id}`, { method: "PATCH", body: form });
-      const json = (await res.json()) as { ok: boolean; task?: TaskRow; error?: string };
+      const json = await readApiJson<{ ok: boolean; task?: TaskRow; error?: string }>(res);
       if (!res.ok || !json.ok || !json.task) throw new Error(json.error ?? "Request failed");
       const saved = json.task;
       setTasks((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
@@ -138,7 +144,7 @@ export function TasksAdminPanel({ tasks: initialTasks, loadError, subjectSuggest
     setDeleteError(null);
     try {
       const res = await fetch(`/api/admin/tasks/${target.id}`, { method: "DELETE" });
-      const json = (await res.json()) as { ok: boolean; error?: string };
+      const json = await readApiJson<{ ok: boolean; error?: string }>(res);
       if (!res.ok || !json.ok) throw new Error(json.error ?? "Request failed");
       setTasks((prev) => prev.filter((t) => t.id !== target.id));
       setDeleteTarget(null);

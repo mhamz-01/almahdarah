@@ -65,7 +65,7 @@
   --color-green: var(--green);
 
   --font-display: var(--font-archivo-black);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-poppins);
   --font-serif: var(--font-spectral);
   --font-mono: var(--font-jetbrains-mono);
 }
@@ -74,6 +74,18 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* Student portal: Poppins everywhere (headings, labels, quotes). Set on the root
+   so portalled dialogs get it too; the marker lives in app/student/(portal)/layout.tsx. */
+:root:has(.student-poppins) {
+  --font-archivo-black: var(--font-poppins);
+  --font-jetbrains-mono: var(--font-poppins);
+  --font-spectral: var(--font-poppins);
+}
+
+:root:has(.student-poppins) .font-display {
+  font-weight: 700;
 }
 
 body {
@@ -370,5 +382,74 @@ body {
   100% {
     left: 100%;
     right: -35%;
+  }
+}
+
+/* Weekly planner: while a task is being dragged, keep the page from selecting text or bouncing. */
+html.planner-dragging,
+html.planner-dragging * {
+  cursor: grabbing !important;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html.planner-dragging body {
+  overscroll-behavior: contain;
+}
+
+/* shadcn Sheet: panels slide in from their edge; the overlay fades. */
+.sheet-overlay[data-state="open"] {
+  animation: dialog-overlay-in 200ms ease-out;
+}
+
+.sheet-overlay[data-state="closed"] {
+  animation: dialog-overlay-out 160ms ease-in forwards;
+}
+
+.sheet-content[data-state="open"] {
+  animation: sheet-in-right 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sheet-content[data-state="closed"] {
+  animation: sheet-out-right 180ms ease-in forwards;
+}
+
+.sheet-content[data-side="left"][data-state="open"] {
+  animation-name: sheet-in-left;
+}
+
+.sheet-content[data-side="left"][data-state="closed"] {
+  animation-name: sheet-out-left;
+}
+
+.sheet-content[data-side="top"][data-state="open"] {
+  animation-name: sheet-in-top;
+}
+
+.sheet-content[data-side="top"][data-state="closed"] {
+  animation-name: sheet-out-top;
+}
+
+.sheet-content[data-side="bottom"][data-state="open"] {
+  animation-name: sheet-in-bottom;
+}
+
+.sheet-content[data-side="bottom"][data-state="closed"] {
+  animation-name: sheet-out-bottom;
+}
+
+@keyframes sheet-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes sheet-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
+@keyframes sheet-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes sheet-out-left { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+@keyframes sheet-in-top { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@keyframes sheet-out-top { from { transform: translateY(0); } to { transform: translateY(-100%); } }
+@keyframes sheet-in-bottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes sheet-out-bottom { from { transform: translateY(0); } to { transform: translateY(100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-overlay,
+  .sheet-content {
+    animation: none !important;
   }
 }

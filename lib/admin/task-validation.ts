@@ -21,6 +21,22 @@ export const TASK_ATTACHMENT_ALLOWED_TYPES = [
   "application/zip",
 ];
 
+// Browsers sometimes report no file type (or a generic one) for a perfectly good
+// PDF/Word file; in that case the extension decides.
+const GENERIC_TYPES = ["", "application/octet-stream"];
+const ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "png", "jpg", "jpeg", "webp", "txt", "zip"];
+
+function hasAllowedExtension(name: string): boolean {
+  const ext = name.includes(".") ? name.split(".").pop()!.toLowerCase() : "";
+  return ALLOWED_EXTENSIONS.includes(ext);
+}
+
+export interface AttachmentMeta {
+  name: string;
+  size: number;
+  type: string;
+}
+
 export type TaskFieldsValidationResult =
   | { ok: true; value: Pick<TaskInsert, "subject" | "title" | "description" | "due_date"> }
   | { ok: false; error: string };
@@ -59,10 +75,9 @@ export function validateTaskFields(body: Record<string, unknown>): TaskFieldsVal
   };
 }
 
-export function validateTaskAttachment(file: File): string | null {
+export function validateTaskAttachment(file: AttachmentMeta): string | null {
   if (file.size > TASK_ATTACHMENT_MAX_BYTES) return "Attachment must be 15MB or smaller";
-  if (file.type && !TASK_ATTACHMENT_ALLOWED_TYPES.includes(file.type)) {
-    return "That file type isn't supported";
-  }
+  const typeOk = TASK_ATTACHMENT_ALLOWED_TYPES.includes(file.type) || (GENERIC_TYPES.includes(file.type) && hasAllowedExtension(file.name));
+  if (!typeOk) return "That file type isn't supported";
   return null;
 }

@@ -295,6 +295,8 @@ export interface StudentRow {
   avatar_color: string;
   email: string | null;
   phone: string | null;
+  approved_at: string;
+  first_login_at: string | null;
 }
 
 export interface StudentInsert {
@@ -401,7 +403,11 @@ export interface StudentTaskRow {
   title: string;
   description: string;
   due_date: string | null;
+  planned_date: string | null;
   completed: boolean;
+  completed_at: string | null;
+  /** The student's own running notes on the task (separate from the description). */
+  notes: string;
   attachments: StudentTaskAttachment[];
 }
 

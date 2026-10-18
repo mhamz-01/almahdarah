@@ -44,16 +44,18 @@ export function computeStudentStats(
 ): StudentWithStats {
   const statusByDate = new Map(attendance.map((a) => [a.class_date, a.status]));
 
-  // Never show weeks from before this student was enrolled — a freshly
-  // added student has no history yet, so their calendar (and streak) starts
-  // at their join week instead of inheriting 4 phantom "missed" weeks.
-  const joinMonday = startOfWeekMonday(new Date(student.created_at));
+  // Tracking starts the day the student first signs in after being approved.
+  // Weeks before that are hidden, so a new student doesn't inherit phantom
+  // "missed" weeks. Until the first login there is nothing to track: only the
+  // current week is shown and no day counts as absent.
+  const trackedFrom = student.first_login_at;
+  const joinMonday = startOfWeekMonday(new Date(trackedFrom ?? referenceDate));
   const weekStarts = buildWeekStarts(referenceDate, 5).filter((monday) => monday.getTime() >= joinMonday.getTime());
 
   // A past class day the student never punched counts as absent. It only
-  // applies from the join date onward, and never to today or the future.
+  // applies from the first-login date onward, and never to today or the future.
   const todayIso = toISODate(referenceDate);
-  const joinIso = student.created_at.slice(0, 10);
+  const joinIso = trackedFrom ? trackedFrom.slice(0, 10) : "9999-12-31";
 
   const weeks: AttendanceWeek[] = weekStarts.map((monday, weekIndex) => {
     const cells: AttendanceCell[] = WEEKDAYS.map((day, dayIndex) => {

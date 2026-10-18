@@ -7,12 +7,13 @@ import { colorForSubject, dueMetaFor } from "@/lib/tasks";
 import { dailyReflections } from "@/lib/data/reflections";
 import { PunchButton } from "@/components/student/punch-button";
 import { DailyReflection } from "@/components/student/daily-reflection";
-import type {
+import { FreshTabs, type FreshClass, type FreshTask } from "@/components/student/fresh-tabs";import type {
   AttendanceRow,
   BoardCardRow,
   ClassScheduleRow,
   CourseLessonRow,
   CourseRow,
+  LessonProgressRow,
   StudentAuthRow,
   StudentTaskRow,
   TaskRow,
@@ -23,7 +24,6 @@ export const dynamic = "force-dynamic";
 
 const WEEKDAYS: Weekday[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const WEEKDAY_BY_UTC_INDEX: (Weekday | null)[] = [null, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", null];
-const MAX_ITEMS = 3;
 
 type DayState = "present" | "absent" | "cancelled" | "today" | "upcoming" | "none";
 
@@ -49,6 +49,12 @@ function relativeDay(iso: string, todayIso: string): string {
   if (day === todayIso) return "Today";
   if (day === addDaysIso(todayIso, -1)) return "Yesterday";
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", timeZone: "UTC" });
+}
+
+function formatClock(total: number): string {
+  const m = Math.floor(total / 60);
+  const sec = String(total % 60).padStart(2, "0");
+  return `${m}:${sec}`;
 }
 
 function Divider({ label }: { label: string }) {
@@ -77,14 +83,21 @@ export default async function StudentHomePage() {
   const now = new Date();
   const todayIso = now.toISOString().slice(0, 10);
 
-  const [studentRes, attendanceRes, scheduleRes, coursesRes, assignedRes, personalRes, boardRes] = await Promise.all([
+  const [studentRes, attendanceRes, scheduleRes, coursesRes, assignedRes, personalRes, boardRes, progressRes] = await Promise.all([
     supabase.from("students").select("*").eq("id", session.studentId).maybeSingle(),
     supabase.from("attendance").select("*").eq("student_id", session.studentId).order("class_date", { ascending: false }).limit(200),
     supabase.from("class_schedule").select("*").order("sort_order", { ascending: true }),
-    supabase.from("courses").select("id, title").eq("published", true),
+    supabase.from("courses").select("id, title, sort_order").eq("published", true).order("sort_order", { ascending: true }),
     supabase.from("tasks").select("*"),
     supabase.from("student_tasks").select("*").eq("student_id", session.studentId),
     supabase.from("board_cards").select("*").eq("student_id", session.studentId),
+    supabase
+      .from("lesson_progress")
+      .select("*")
+      .eq("student_id", session.studentId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const student = studentRes.data as StudentAuthRow | null;
@@ -110,18 +123,21 @@ export default async function StudentHomePage() {
     else if (cell?.status === "absent") state = "absent";
     else if (iso === todayIso) state = "today";
     else state = "upcoming";
-    return { day, letter: day[0], state, held: !!slot && slot.status === "scheduled", passed: iso < todayIso };
+    return {
+      day,
+      dateNum: Number(iso.slice(8)),
+      subject: slot?.subject ?? null,
+      time: slot?.start_time ?? null,
+      state,
+      held: !!slot && slot.status === "scheduled",
+      passed: iso < todayIso,
+    };
   });
 
   const held = weekDots.filter((d) => d.held).length;
   const done = weekDots.filter((d) => d.held && d.passed).length;
   const presentThisWeek = thisWeek.cells.filter((c) => c.status === "present").length;
   const missedThisWeek = thisWeek.cells.filter((c) => c.status === "absent").length;
-
-  const allCells = stats.weeks.flatMap((w) => w.cells);
-  const presentAll = allCells.filter((c) => c.status === "present").length;
-  const absentAll = allCells.filter((c) => c.status === "absent").length;
-  const overallPct = presentAll + absentAll > 0 ? Math.round((presentAll / (presentAll + absentAll)) * 100) : null;
 
   // ── Today ─────────────────────────────────────────────────────
   const todayDay = WEEKDAY_BY_UTC_INDEX[now.getUTCDay()];
@@ -136,7 +152,7 @@ export default async function StudentHomePage() {
   const nextClass = upcoming.find((s) => WEEKDAYS.indexOf(s.day) > todayIdx) ?? upcoming[0] ?? null;
 
   // ── New lessons this week ─────────────────────────────────────
-  const courses = (coursesRes.data as Pick<CourseRow, "id" | "title">[] | null) ?? [];
+  const courses = (coursesRes.data as Pick<CourseRow, "id" | "title" | "sort_order">[] | null) ?? [];
   const courseTitle = new Map(courses.map((c) => [c.id, c.title]));
   const lessonsRes = courses.length
     ? await supabase
@@ -148,6 +164,71 @@ export default async function StudentHomePage() {
         .limit(20)
     : { data: [] as CourseLessonRow[] };
   const newLessons = (lessonsRes.data as CourseLessonRow[] | null) ?? [];
+
+  // ── Continue learning ─────────────────────────────────────────
+  type LessonLite = Pick<CourseLessonRow, "id" | "position" | "title" | "youtube_video_id" | "duration_seconds">;
+  interface ResumeCard {
+    mode: "resume" | "next" | "start" | "finished";
+    courseId: number;
+    courseTitle: string;
+    lesson: LessonLite | null;
+    seconds: number;
+    done: number;
+    total: number;
+  }
+
+  const LESSON_COLS = "id, position, title, youtube_video_id, duration_seconds";
+  const latestProgress = progressRes.data as LessonProgressRow | null;
+  let resume: ResumeCard | null = null;
+
+  if (latestProgress) {
+    const { data: current } = await supabase
+      .from("course_lessons")
+      .select(`course_id, ${LESSON_COLS}`)
+      .eq("id", latestProgress.lesson_id)
+      .maybeSingle();
+    const currentCourse = current ? courses.find((c) => c.id === current.course_id) : undefined;
+
+    if (current && currentCourse) {
+      const { data: siblingRows } = await supabase
+        .from("course_lessons")
+        .select(LESSON_COLS)
+        .eq("course_id", current.course_id)
+        .order("position", { ascending: true });
+      const siblings = (siblingRows as LessonLite[] | null) ?? [];
+      const { data: doneRows } = siblings.length
+        ? await supabase
+            .from("lesson_progress")
+            .select("lesson_id")
+            .eq("student_id", session.studentId)
+            .eq("completed", true)
+            .in("lesson_id", siblings.map((l) => l.id))
+        : { data: [] as { lesson_id: number }[] };
+      const doneIds = new Set((doneRows ?? []).map((r) => r.lesson_id));
+      const next = siblings.find((l) => l.position > current.position && !doneIds.has(l.id)) ?? null;
+      const base = { courseId: current.course_id, courseTitle: currentCourse.title, done: doneIds.size, total: siblings.length };
+
+      if (!latestProgress.completed) {
+        resume = { ...base, mode: "resume", lesson: current as LessonLite, seconds: latestProgress.last_position_seconds };
+      } else if (next) {
+        resume = { ...base, mode: "next", lesson: next, seconds: 0 };
+      } else {
+        resume = { ...base, mode: "finished", lesson: null, seconds: 0 };
+      }
+    }
+  }
+
+  if (!resume && courses[0]) {
+    const first = courses[0];
+    const { data: firstRows } = await supabase
+      .from("course_lessons")
+      .select(LESSON_COLS)
+      .eq("course_id", first.id)
+      .order("position", { ascending: true })
+      .limit(1);
+    const lesson = ((firstRows as LessonLite[] | null) ?? [])[0] ?? null;
+    if (lesson) resume = { mode: "start", courseId: first.id, courseTitle: first.title, lesson, seconds: 0, done: 0, total: 0 };
+  }
 
   // ── Tasks that need attention this week ───────────────────────
   const boardDone = new Set<string>();
@@ -177,6 +258,27 @@ export default async function StudentHomePage() {
     .filter((t) => (t.due ? t.due <= weekEnd : t.created.slice(0, 10) >= weekStart))
     .sort((a, b) => (a.due ?? "9999").localeCompare(b.due ?? "9999"));
 
+  const freshClasses: FreshClass[] = newLessons.map((l) => ({
+    id: l.id,
+    href: `/student/courses/${l.course_id}?lesson=${l.position}`,
+    videoId: l.youtube_video_id,
+    title: l.title,
+    course: courseTitle.get(l.course_id) ?? "",
+    when: relativeDay(l.created_at, todayIso),
+  }));
+  const freshTasks: FreshTask[] = weekTasks.map((t) => {
+    const due = dueMetaFor(t.due, now);
+    return {
+      key: t.key,
+      href: "/student/tasks",
+      title: t.title,
+      subject: t.subject ?? "Personal",
+      color: colorForSubject(t.subject ?? t.title),
+      dueLabel: due?.label ?? null,
+      dueBadgeClass: due?.badgeClass ?? null,
+    };
+  });
+
   // ── Header / streak ───────────────────────────────────────────
   const firstName = student.name.split(" ")[0];
   const dateLabel = now.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
@@ -199,78 +301,132 @@ export default async function StudentHomePage() {
         </p>
       </header>
 
-      {/* Row 1 — attendance numbers */}
-      <section aria-label="Attendance overview" className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-        <div className="col-span-2 rounded-[22px] border border-border bg-surface p-5 sm:col-span-1">
-          <div className="text-[11px] font-bold tracking-[0.12em] text-muted uppercase">Attendance · this week</div>
-          <div className="mt-3 flex items-baseline gap-1.5">
-            <span className="font-display text-[34px] leading-none text-ink">{presentThisWeek}</span>
-            <span className="text-[14px] text-muted">of {held} classes</span>
+      {/* Row 1 — the week at a glance + where to pick up learning */}
+      <section className="mt-7 grid gap-3 sm:gap-4 lg:grid-cols-[1.35fr_1fr]">
+        <div className="rounded-[22px] border border-border bg-surface p-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="text-[15px] font-bold text-ink">Your week</h2>
+            <span className="text-[12.5px] text-muted">
+              {held === 0 ? "No classes scheduled" : `${presentThisWeek} of ${held} attended`}
+            </span>
           </div>
-          <div className="mt-4 flex gap-2" role="img" aria-label={`Attended ${presentThisWeek} of ${held} classes this week`}>
+          <ol className="mt-4 grid grid-cols-5 gap-1.5 sm:gap-2.5">
             {weekDots.map((d) => (
-              <span
+              <li
                 key={d.day}
-                title={`${d.day}: ${d.state === "none" ? "no class" : d.state}`}
-                className={`flex h-7 w-7 items-center justify-center rounded-full font-mono text-[10.5px] font-bold ${DOT_CLASS[d.state]}`}
+                className={`flex flex-col items-center rounded-[16px] border px-1 py-3 text-center sm:px-2 ${
+                  d.state === "today" ? "border-primary bg-primary/[0.07]" : "border-border"
+                }`}
               >
-                {d.state === "present" ? "✓" : d.letter}
-              </span>
+                <span className="font-mono text-[10.5px] tracking-[0.12em] text-muted uppercase">{d.day.slice(0, 3)}</span>
+                <span
+                  title={d.state === "none" ? "No class" : d.state}
+                  className={`mt-2 flex h-8 w-8 items-center justify-center rounded-full font-mono text-[12px] font-bold ${DOT_CLASS[d.state]}`}
+                >
+                  {d.state === "present"
+                    ? "✓"
+                    : d.state === "absent"
+                      ? "✕"
+                      : d.state === "cancelled" || d.state === "none"
+                        ? "–"
+                        : d.dateNum}
+                </span>
+                <span className="mt-2 hidden w-full truncate px-1 text-[11.5px] font-semibold text-ink sm:block">
+                  {d.state === "cancelled" ? "Cancelled" : (d.subject ?? "No class")}
+                </span>
+                <span className="font-mono text-[10.5px] text-muted sm:mt-0.5">{d.time ?? ""}</span>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
 
-        <div className="rounded-[22px] border border-border bg-surface p-5">
-          <div className="text-[11px] font-bold tracking-[0.12em] text-muted uppercase">Overall attendance</div>
-          <div className="mt-3 font-display text-[34px] leading-none text-ink">
-            {overallPct === null ? "—" : `${overallPct}%`}
-          </div>
-          <div className="mt-4 text-[12.5px] leading-[1.45] text-text">
-            {overallPct === null
-              ? "No classes counted yet."
-              : `You attended ${presentAll} of ${presentAll + absentAll} classes.`}
-          </div>
-        </div>
-
-        <div className="rounded-[22px] border border-border bg-surface p-5">
-          <div className="text-[11px] font-bold tracking-[0.12em] text-muted uppercase">Classes · this week</div>
-          <div className="mt-3 font-display text-[34px] leading-none text-ink">{held}</div>
-          <div className="mt-4 text-[12.5px] text-text">
-            {done} done · {Math.max(held - done, 0)} to go
-          </div>
-          {missedThisWeek > 0 && (
-            <div className="mt-1 font-mono text-[10.5px] text-red-600">{missedThisWeek} missed</div>
+        <div className="flex flex-col rounded-[22px] border border-border bg-surface p-5">
+          <h2 className="text-[15px] font-bold text-ink">{resume?.mode === "start" ? "Start learning" : "Continue learning"}</h2>
+          {resume?.lesson ? (
+            <Link
+              href={`/student/courses/${resume.courseId}?lesson=${resume.lesson.position}`}
+              className="group mt-4 flex flex-1 flex-col justify-between gap-4"
+            >
+              <span className="flex items-center gap-3.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://i.ytimg.com/vi/${resume.lesson.youtube_video_id}/mqdefault.jpg`}
+                  alt=""
+                  loading="lazy"
+                  className="aspect-video w-[112px] shrink-0 rounded-[12px] bg-surface-2 object-cover"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-mono text-[11px] text-muted">{resume.courseTitle}</span>
+                  <span className="mt-0.5 line-clamp-2 block text-[14px] leading-[1.35] font-semibold text-ink group-hover:underline">
+                    {resume.lesson.title}
+                  </span>
+                  {resume.mode === "resume" && resume.seconds > 0 && (
+                    <span className="mt-1 block font-mono text-[11px] text-muted">Left off at {formatClock(resume.seconds)}</span>
+                  )}
+                </span>
+              </span>
+              <span className="block">
+                {resume.total > 0 && (
+                  <>
+                    <span className="block h-1.5 overflow-hidden rounded-full bg-surface-2">
+                      <span
+                        className="block h-full rounded-full bg-primary"
+                        style={{ width: `${Math.round((resume.done / resume.total) * 100)}%` }}
+                      />
+                    </span>
+                    <span className="mt-1.5 block text-[12px] text-muted">
+                      {resume.done} of {resume.total} lessons complete
+                    </span>
+                  </>
+                )}
+                <span className="mt-3 inline-flex h-9 items-center rounded-full bg-primary px-4 text-[13px] font-bold text-white transition group-hover:brightness-[1.08]">
+                  {resume.mode === "resume" ? "Resume lesson" : resume.mode === "next" ? "Start next lesson" : "Start first lesson"} →
+                </span>
+              </span>
+            </Link>
+          ) : resume?.mode === "finished" ? (
+            <div className="mt-4 flex flex-1 flex-col justify-between gap-4">
+              <p className="text-[13.5px] leading-[1.55] text-text">
+                You&apos;ve finished every lesson in <span className="font-semibold text-ink">{resume.courseTitle}</span>. Masha&apos;Allah —
+                pick your next course.
+              </p>
+              <Link href="/student/courses" className="inline-flex h-9 w-fit items-center rounded-full bg-primary px-4 text-[13px] font-bold text-white">
+                Browse courses →
+              </Link>
+            </div>
+          ) : (
+            <p className="mt-4 text-[13.5px] text-muted">No courses are available yet. Check back soon, in sha Allah.</p>
           )}
         </div>
       </section>
 
-      {/* Row 2 — streak + today */}
-      <section className="mt-3 grid gap-3 sm:mt-4 sm:gap-4 lg:grid-cols-[1.15fr_1fr]">
-        <div className="flex flex-col justify-between rounded-[22px] bg-navy p-5 text-white sm:p-6">
-          <div className="flex items-start justify-between gap-4">
+      {/* Row 2 — streak + today, one card */}
+      <section className="mt-3 grid overflow-hidden rounded-[22px] bg-navy text-white sm:mt-4 lg:grid-cols-[1fr_1.1fr]">
+        <div className="flex flex-col justify-between p-5 sm:p-6">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <div className="text-[11px] font-bold tracking-[0.12em] text-gold uppercase">Your streak</div>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="font-display text-[44px] leading-none">{stats.streak}</span>
+                <span className="font-display text-[40px] leading-none">{stats.streak}</span>
                 <span className="text-[14px] text-white/80">{stats.streak === 1 ? "week" : "weeks"} in a row</span>
               </div>
             </div>
             <span
               aria-hidden
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
                 stats.streak > 0 ? "bg-gold text-navy" : "bg-white/10 text-white/60"
               }`}
             >
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
                 <path d="M12.6 2.2c.3 2.6-.6 4.2-2 5.8-1.3 1.5-2.6 3-2.6 5.2 0 1.3.5 2.4 1.3 3.2-.1-1.9.8-3 1.9-4 1-.9 1.7-1.9 1.9-3.4 2.7 1.8 4.4 4.6 4.4 7.3A6.5 6.5 0 0 1 12 18.5a6.5 6.5 0 0 1-6.5-6.5c0-4.7 4-7 7.1-9.8Z" />
               </svg>
             </span>
           </div>
           <div>
-            <p className="mt-4 max-w-[44ch] text-[14px] leading-[1.55] text-white/90">
+            <p className="mt-3 max-w-[44ch] text-[13.5px] leading-[1.5] text-white/85">
               {streakMessage(stats.streak, missedThisWeek)}
             </p>
-            <div className="mt-4 flex gap-1.5">
+            <div className="mt-3 flex gap-1.5">
               {streakDots.map((filled, i) => (
                 <span key={i} className={`h-1.5 flex-1 rounded-full ${filled ? "bg-gold" : "bg-white/15"}`} />
               ))}
@@ -278,21 +434,21 @@ export default async function StudentHomePage() {
           </div>
         </div>
 
-        <div className="flex flex-col justify-between rounded-[22px] border border-border-strong bg-surface p-5 sm:p-6">
+        <div className="flex flex-col justify-between border-t border-white/15 p-5 sm:p-6 lg:border-t-0 lg:border-l">
           {todayClass ? (
             <>
               <div>
-                <div className="text-[11px] font-bold tracking-[0.12em] text-primary uppercase">Today&apos;s class</div>
-                <div className="mt-2 font-display text-[22px] leading-[1.15] text-ink">{todayClass.subject}</div>
-                <div className="mt-1.5 font-mono text-[12px] text-muted">
+                <div className="text-[11px] font-bold tracking-[0.12em] text-gold uppercase">Today&apos;s class</div>
+                <div className="mt-2 font-display text-[22px] leading-[1.15] text-white">{todayClass.subject}</div>
+                <div className="mt-1.5 font-mono text-[12px] text-white/70">
                   {todayClass.start_time} · {todayClass.teacher}
                 </div>
               </div>
               <div className="mt-5">
                 {canPunch ? (
-                  <PunchButton punched={alreadyPunched} />
+                  <PunchButton punched={alreadyPunched} onDark />
                 ) : (
-                  <span className="inline-flex h-10 items-center rounded-full bg-gold/30 px-4 text-[12.5px] font-bold text-[#8a6b12]">
+                  <span className="inline-flex h-10 items-center rounded-full bg-gold/25 px-4 text-[12.5px] font-bold text-gold">
                     {todayClass.status === "cancelled" ? "Cancelled this week" : "Rescheduled"}
                   </span>
                 )}
@@ -300,12 +456,12 @@ export default async function StudentHomePage() {
             </>
           ) : (
             <div>
-              <div className="text-[11px] font-bold tracking-[0.12em] text-primary uppercase">No class today</div>
-              <div className="mt-2 font-display text-[22px] leading-[1.15] text-ink">A day to revise</div>
+              <div className="text-[11px] font-bold tracking-[0.12em] text-gold uppercase">No class today</div>
+              <div className="mt-2 font-display text-[22px] leading-[1.15] text-white">A day to revise</div>
               {nextClass && (
-                <div className="mt-1.5 text-[13px] text-text">
-                  Next up: <span className="font-semibold text-ink">{nextClass.subject}</span>
-                  <span className="font-mono text-[12px] text-muted">
+                <div className="mt-1.5 text-[13px] text-white/80">
+                  Next up: <span className="font-semibold text-white">{nextClass.subject}</span>
+                  <span className="font-mono text-[12px] text-white/70">
                     {" "}· {nextClass.day.slice(0, 3)} {nextClass.start_time}
                   </span>
                 </div>
@@ -318,106 +474,7 @@ export default async function StudentHomePage() {
       <Divider label="Fresh for you" />
 
       {/* Row 3 — new classes + tasks */}
-      <section className="grid gap-6 lg:grid-cols-2 lg:gap-8">
-        <div>
-          <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-[15px] font-bold text-ink">New classes this week</h2>
-            <Link href="/student/courses" className="text-[12.5px] font-semibold text-primary hover:underline">
-              All courses →
-            </Link>
-          </div>
-          {newLessons.length === 0 ? (
-            <p className="rounded-[18px] border border-dashed border-border-strong px-5 py-6 text-[13.5px] text-muted">
-              Nothing new uploaded yet this week. Check back soon, in sha Allah.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {newLessons.slice(0, MAX_ITEMS).map((l) => (
-                <li key={l.id}>
-                  <Link
-                    href={`/student/courses/${l.course_id}?lesson=${l.position}`}
-                    className="group flex items-center gap-3.5 rounded-[18px] border border-border bg-surface p-2.5 transition-colors hover:border-border-strong"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`https://i.ytimg.com/vi/${l.youtube_video_id}/mqdefault.jpg`}
-                      alt=""
-                      loading="lazy"
-                      className="aspect-video w-[88px] shrink-0 rounded-[12px] bg-surface-2 object-cover"
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[14px] font-semibold text-ink group-hover:underline">
-                        {l.title}
-                      </span>
-                      <span className="mt-0.5 block truncate font-mono text-[11px] text-muted">
-                        {courseTitle.get(l.course_id)} · {relativeDay(l.created_at, todayIso)}
-                      </span>
-                    </span>
-                    <span aria-hidden className="pr-2 text-muted group-hover:text-ink">→</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-          {newLessons.length > MAX_ITEMS && (
-            <Link href="/student/courses" className="mt-2 inline-block text-[12.5px] font-semibold text-muted hover:text-ink">
-              +{newLessons.length - MAX_ITEMS} more this week
-            </Link>
-          )}
-        </div>
-
-        <div>
-          <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="text-[15px] font-bold text-ink">Tasks this week</h2>
-            <Link href="/student/tasks" className="text-[12.5px] font-semibold text-primary hover:underline">
-              All tasks →
-            </Link>
-          </div>
-          {weekTasks.length === 0 ? (
-            <p className="rounded-[18px] border border-dashed border-border-strong px-5 py-6 text-[13.5px] text-muted">
-              You&apos;re all caught up — no tasks due this week.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {weekTasks.slice(0, MAX_ITEMS).map((t) => {
-                const due = dueMetaFor(t.due, now);
-                return (
-                  <li key={t.key}>
-                    <Link
-                      href="/student/tasks"
-                      className="group flex items-center gap-3.5 rounded-[18px] border border-border bg-surface px-4 py-3.5 transition-colors hover:border-border-strong"
-                    >
-                      <span
-                        aria-hidden
-                        className="h-8 w-1 shrink-0 rounded-full"
-                        style={{ background: colorForSubject(t.subject ?? t.title) }}
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[14px] font-semibold text-ink group-hover:underline">
-                          {t.title}
-                        </span>
-                        <span className="mt-0.5 block truncate font-mono text-[11px] text-muted">
-                          {t.subject ?? "Personal"}
-                        </span>
-                      </span>
-                      {due && (
-                        <span className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${due.badgeClass}`}>
-                          {due.label}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          {weekTasks.length > MAX_ITEMS && (
-            <Link href="/student/tasks" className="mt-2 inline-block text-[12.5px] font-semibold text-muted hover:text-ink">
-              +{weekTasks.length - MAX_ITEMS} more
-            </Link>
-          )}
-        </div>
-      </section>
+      <FreshTabs classes={freshClasses} tasks={freshTasks} />
 
       <Divider label="For the seeker of knowledge" />
 

@@ -20,11 +20,15 @@ export default async function StudentPortalLayout({ children }: { children: Reac
   if (!student) redirect("/student/login");
 
   return (
-    <StudentPortalShell
-      student={{ name: student.name, username: student.username, avatarColor: student.avatar_color }}
-      unreadCount={unreadRes.count ?? 0}
-    >
-      {children}
-    </StudentPortalShell>
+    <>
+      {/* Marker: globals.css switches every portal font to Poppins while this is on the page. */}
+      <span className="student-poppins hidden" aria-hidden />
+      <StudentPortalShell
+        student={{ name: student.name, username: student.username, avatarColor: student.avatar_color }}
+        unreadCount={unreadRes.count ?? 0}
+      >
+        {children}
+      </StudentPortalShell>
+    </>
   );
 }

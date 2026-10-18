@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { ADMIN_SESSION_COOKIE, isValidAdminSession } from "@/lib/admin-auth";
 import { validateTaskAttachment, validateTaskFields } from "@/lib/admin/task-validation";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
+import { ADMIN_UPLOAD_PREFIX, discardClaimed, parseClaimed, verifyUploads } from "@/lib/upload-targets";
 import type { TaskInsert, TaskRow } from "@/lib/types";
 
 const BUCKET = "task-attachments";
@@ -21,12 +22,16 @@ export async function POST(request: Request) {
   const fields = Object.fromEntries(
     ["subject", "title", "description", "due_date"].map((key) => [key, form.get(key)]),
   );
+  const supabase = createSupabaseAdminClient();
+  // The browser uploads straight to Supabase Storage and sends only the path (see lib/upload-targets.ts).
+  const claimed = parseClaimed(form.get("attachment")).slice(0, 1);
+
   const validated = validateTaskFields(fields);
   if (!validated.ok) {
+    await discardClaimed(supabase, BUCKET, claimed, ADMIN_UPLOAD_PREFIX);
     return NextResponse.json({ ok: false, error: validated.error }, { status: 400 });
   }
 
-  const supabase = createSupabaseAdminClient();
   const file = form.get("file");
 
   let attachment: Pick<TaskInsert, "attachment_url" | "attachment_name" | "attachment_path"> = {
@@ -35,7 +40,12 @@ export async function POST(request: Request) {
     attachment_path: null,
   };
 
-  if (file instanceof File && file.size > 0) {
+  if (claimed.length) {
+    const verified = await verifyUploads(supabase, BUCKET, claimed, ADMIN_UPLOAD_PREFIX);
+    if (!verified.ok) return NextResponse.json({ ok: false, error: verified.error }, { status: 400 });
+    const [item] = verified.items;
+    attachment = { attachment_url: item.url, attachment_name: item.name, attachment_path: item.path };
+  } else if (file instanceof File && file.size > 0) {
     const attachmentError = validateTaskAttachment(file);
     if (attachmentError) {
       return NextResponse.json({ ok: false, error: attachmentError }, { status: 400 });
@@ -55,6 +65,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase.from("tasks").insert(insertPayload).select("*").single();
 
   if (error) {
+    if (attachment.attachment_path) await supabase.storage.from(BUCKET).remove([attachment.attachment_path]);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 

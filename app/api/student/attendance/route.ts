@@ -29,8 +29,12 @@ async function resolveDate(req: Request, studentId: number): Promise<Resolved> {
 
   if (classDate !== todayIso) {
     const supabase = createSupabaseAdminClient();
-    const { data: student } = await supabase.from("students").select("created_at").eq("id", studentId).maybeSingle();
-    if (!student || classDate < String(student.created_at).slice(0, 10)) {
+    const { data: student } = await supabase
+      .from("students")
+      .select("created_at, first_login_at")
+      .eq("id", studentId)
+      .maybeSingle();
+    if (!student || classDate < String(student.first_login_at ?? student.created_at).slice(0, 10)) {
       return { ok: false, error: "That class is from before you joined" };
     }
   }

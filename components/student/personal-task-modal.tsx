@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { uploadFilesDirect } from "@/lib/direct-upload-client";
+import { readApiJson } from "@/lib/read-api-json";
+import { STUDENT_TASK_BUCKET } from "@/lib/student-task-files";
 import type { StudentTaskRow } from "@/lib/types";
 
 const MAX_FILES = 5;
@@ -15,6 +18,8 @@ interface PersonalTaskModalProps {
   /** When set, the modal edits this task instead of creating a new one. */
   task: StudentTaskRow | null;
   subjectSuggestions: string[];
+  /** Pre-fills "Plan for" when creating a task from a day of the weekly planner. */
+  defaultPlannedDate?: string | null;
   onSaved: (task: StudentTaskRow) => void;
 }
 
@@ -30,11 +35,12 @@ export function PersonalTaskModal(props: PersonalTaskModalProps) {
   );
 }
 
-function PersonalTaskForm({ onOpenChange, task, subjectSuggestions, onSaved }: PersonalTaskModalProps) {
+function PersonalTaskForm({ onOpenChange, task, subjectSuggestions, defaultPlannedDate, onSaved }: PersonalTaskModalProps) {
   const [subject, setSubject] = useState(task?.subject ?? "");
   const [title, setTitle] = useState(task?.title ?? "");
   const [description, setDescription] = useState(task?.description ?? "");
   const [dueDate, setDueDate] = useState(task?.due_date ?? "");
+  const [plannedDate, setPlannedDate] = useState(task ? (task.planned_date ?? "") : (defaultPlannedDate ?? ""));
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [removePaths, setRemovePaths] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -65,14 +71,18 @@ function PersonalTaskForm({ onOpenChange, task, subjectSuggestions, onSaved }: P
       form.set("title", title.trim());
       form.set("description", description.trim());
       form.set("due_date", dueDate);
-      newFiles.forEach((f) => form.append("files", f));
+      form.set("planned_date", plannedDate);
+      if (newFiles.length) {
+        const uploaded = await uploadFilesDirect("/api/student/tasks/upload-url", STUDENT_TASK_BUCKET, newFiles);
+        form.set("uploads", JSON.stringify(uploaded));
+      }
       removePaths.forEach((p) => form.append("remove_paths", p));
 
       const res = await fetch(task ? `/api/student/tasks/${task.id}` : "/api/student/tasks", {
         method: task ? "PATCH" : "POST",
         body: form,
       });
-      const json = (await res.json()) as { ok: boolean; task?: StudentTaskRow; error?: string };
+      const json = await readApiJson<{ ok: boolean; task?: StudentTaskRow; error?: string }>(res);
       if (!res.ok || !json.ok || !json.task) throw new Error(json.error ?? "Request failed");
       onSaved(json.task);
       onOpenChange(false);
@@ -128,10 +138,18 @@ function PersonalTaskForm({ onOpenChange, task, subjectSuggestions, onSaved }: P
           />
         </label>
 
-        <label className="flex flex-col gap-[7px]">
-          <span className="text-[13px] font-bold text-ink">Due date (optional)</span>
-          <input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" className={inputClasses} />
-        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-[7px]">
+            <span className="text-[13px] font-bold text-ink">Plan for (optional)</span>
+            <input value={plannedDate} onChange={(e) => setPlannedDate(e.target.value)} type="date" className={inputClasses} />
+            <span className="text-[11.5px] text-muted">The day you&apos;ll do it — shows in your weekly plan.</span>
+          </label>
+          <label className="flex flex-col gap-[7px]">
+            <span className="text-[13px] font-bold text-ink">Due date (optional)</span>
+            <input value={dueDate} onChange={(e) => setDueDate(e.target.value)} type="date" className={inputClasses} />
+            <span className="text-[11.5px] text-muted">The deadline, if there is one.</span>
+          </label>
+        </div>
 
         <div className="flex flex-col gap-[7px]">
           <span className="text-[13px] font-bold text-ink">Files (optional)</span>
