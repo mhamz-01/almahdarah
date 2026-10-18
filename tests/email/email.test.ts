@@ -16,8 +16,6 @@ const student: StudentRow = {
   avatar_color: "#1182a3",
   email: "aisha@example.com",
   phone: null,
-  approved_at: "2026-09-01T00:00:00Z",
-  first_login_at: "2026-09-01T00:00:00Z",
 };
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;

@@ -52,12 +52,14 @@ function prefsOf(student: StudentRow, map: Map<number, StudentEmailPrefsRow>): P
   };
 }
 
-async function loadStudents(supabase: Admin, onlyStudentId?: number) {
-  let query = supabase.from("students").select("id, created_at, name, username, avatar_color, email, phone, approved_at, first_login_at").not("email", "is", null);
+type EmailStudent = StudentRow & { last_login_at: string | null };
+
+async function loadStudents(supabase: Admin, onlyStudentId?: number): Promise<EmailStudent[]> {
+  let query = supabase.from("students").select("id, created_at, name, username, avatar_color, email, phone, last_login_at").not("email", "is", null);
   if (onlyStudentId !== undefined) query = query.eq("id", onlyStudentId);
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return ((data ?? []) as StudentRow[]).filter((s) => s.email && s.email.trim());
+  return ((data ?? []) as EmailStudent[]).filter((s) => s.email && s.email.trim());
 }
 
 // `tolerateMissingTable` lets a dry run preview before migration 0026 has been applied (everyone gets the defaults).
@@ -130,7 +132,7 @@ export async function runWeeklyDigest(options: RunOptions = {}): Promise<RunSumm
 
   const queue: { student: StudentRow; message: OutgoingEmail }[] = [];
   for (const student of students) {
-    if (!student.first_login_at) { bump(summary.skipped, "never signed in"); continue; }
+    if (!student.last_login_at) { bump(summary.skipped, "never signed in"); continue; }
     if (!prefsOf(student, prefs).weekly_digest) { bump(summary.skipped, "turned off by student"); continue; }
     if (prefs.get(student.id)?.last_digest_sent_on === todayIso) { bump(summary.skipped, "already sent today"); continue; }
 

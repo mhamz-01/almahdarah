@@ -12,7 +12,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
   }
 
-  const result = await sendPreview(session.studentId, body.kind);
+  let result;
+  try {
+    result = await sendPreview(session.studentId, body.kind);
+  } catch (e) {
+    // e.g. a database migration that hasn't been run yet; say what failed instead of a bare 500.
+    return NextResponse.json({ ok: false, error: `Couldn't prepare the email: ${e instanceof Error ? e.message : "unknown error"}` }, { status: 500 });
+  }
   if (!result.ok) {
     return NextResponse.json({ ok: false, error: result.error }, { status: result.retryAfterSeconds ? 429 : 400 });
   }

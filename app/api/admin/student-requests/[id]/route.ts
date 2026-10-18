@@ -52,7 +52,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       password_enc: req.password_enc,
       email: req.email,
       phone: req.phone,
-      approved_at: reviewedAt,
     })
     .select("id")
     .single();

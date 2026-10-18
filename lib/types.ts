@@ -295,8 +295,6 @@ export interface StudentRow {
   avatar_color: string;
   email: string | null;
   phone: string | null;
-  approved_at: string;
-  first_login_at: string | null;
 }
 
 export interface StudentInsert {
