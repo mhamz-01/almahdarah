@@ -1,6 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { validateEmail } from "@/lib/admin/student-validation";
-import { sendOne, siteUrl } from "@/lib/email/send";
+import { emailConfigured, sendOne, siteUrl } from "@/lib/email/send";
 import { renderPasswordResetCode } from "@/lib/email/templates";
 import { clientIp, CODE_TTL_MS, generateCode, hashCode, rateLimitError } from "@/lib/password-reset";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
@@ -14,6 +14,12 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { email?: unknown } | null;
   const email = validateEmail(body?.email);
   if (!email.ok) return NextResponse.json({ ok: false, error: email.error }, { status: 400 });
+
+  // Checked before the account lookup, so it says nothing about which emails are registered.
+  if (!emailConfigured()) {
+    console.error("[password-reset] RESEND_API_KEY / EMAIL_FROM are not set in this environment");
+    return NextResponse.json({ ok: false, error: "Password reset emails aren't available right now. Please contact your teacher." }, { status: 503 });
+  }
 
   const supabase = createSupabaseAdminClient();
   const ip = clientIp(request);
