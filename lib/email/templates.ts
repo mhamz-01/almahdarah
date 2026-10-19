@@ -33,8 +33,26 @@ function shortDue(iso: string): string {
   return new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 }
 
-function shell(opts: { preheader: string; title: string; subtitle: string; body: string; siteUrl: string; cta: { label: string; href: string } }): string {
+function shell(opts: {
+  preheader: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  siteUrl: string;
+  cta?: { label: string; href: string };
+  // Replaces the "manage these emails" footer, for account-security emails students can't turn off.
+  footer?: string;
+}): string {
   const manage = `${opts.siteUrl}/student/reminders`;
+  const cta = opts.cta
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 0;"><tr><td style="background:${C.primary};border-radius:999px;">
+<a href="${esc(opts.cta.href)}" style="display:inline-block;padding:12px 24px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;">${esc(opts.cta.label)}</a>
+</td></tr></table>`
+    : "";
+  const footer =
+    opts.footer ??
+    `You are receiving this because you are a student at Al-Mahdrah.<br>
+<a href="${esc(manage)}" style="color:${C.primary};">Manage or turn off these emails</a>`;
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(opts.title)}</title></head>
 <body style="margin:0;padding:0;background:${C.bg};font-family:Segoe UI,Helvetica,Arial,sans-serif;color:${C.text};">
@@ -46,13 +64,10 @@ function shell(opts: { preheader: string; title: string; subtitle: string; body:
 <h1 style="margin:0 0 4px;font-size:22px;line-height:1.25;color:${C.ink};">${esc(opts.title)}</h1>
 <p style="margin:0 0 20px;font-size:14px;color:${C.muted};">${esc(opts.subtitle)}</p>
 ${opts.body}
-<table role="presentation" cellpadding="0" cellspacing="0" style="margin:26px 0 0;"><tr><td style="background:${C.primary};border-radius:999px;">
-<a href="${esc(opts.cta.href)}" style="display:inline-block;padding:12px 24px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;">${esc(opts.cta.label)}</a>
-</td></tr></table>
+${cta}
 </td></tr>
 <tr><td style="padding:16px 8px 0;font-size:12px;line-height:1.6;color:${C.muted};text-align:center;">
-You are receiving this because you are a student at Al-Mahdrah.<br>
-<a href="${esc(manage)}" style="color:${C.primary};">Manage or turn off these emails</a>
+${footer}
 </td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -211,6 +226,66 @@ export function renderPlanReminder(r: PlanReminder, siteUrl: string): RenderedEm
       body,
       siteUrl,
       cta: { label: "Open your weekly plan", href: `${siteUrl}/student/tasks` },
+    }),
+    text,
+  };
+}
+
+const SECURITY_FOOTER = "This is an account security email from Al-Mahdrah Islamic Academy. It is sent even if other emails are turned off.";
+
+export function renderPasswordResetCode(code: string, ttlMinutes: number, siteUrl: string): RenderedEmail {
+  const body = `
+<p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:${C.text};">Use this code to reset your student portal password:</p>
+<p style="margin:0;padding:16px 0;background:#ffffff;border:1px solid ${C.border};border-radius:12px;text-align:center;font-family:Consolas,Menlo,monospace;font-size:32px;font-weight:700;letter-spacing:.3em;color:${C.ink};">${esc(code)}</p>
+<p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:${C.text};">It expires in ${ttlMinutes} minutes and can only be used once. Never share it with anyone, including staff.</p>
+<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:${C.muted};">Didn’t ask for this? You can ignore this email. Your password stays the same.</p>`;
+
+  const text = [
+    `Your Al-Mahdrah password reset code: ${code}`,
+    ``,
+    `It expires in ${ttlMinutes} minutes and can only be used once. Never share it with anyone, including staff.`,
+    ``,
+    `Didn't ask for this? You can ignore this email. Your password stays the same.`,
+    ``,
+    `${siteUrl}/student/forgot-password`,
+  ].join("\n");
+
+  return {
+    subject: `${code} is your Al-Mahdrah password reset code`,
+    html: shell({
+      preheader: `Your password reset code. It expires in ${ttlMinutes} minutes.`,
+      title: "Reset your password",
+      subtitle: "Student portal",
+      body,
+      siteUrl,
+      footer: esc(SECURITY_FOOTER),
+    }),
+    text,
+  };
+}
+
+export function renderPasswordChanged(username: string, siteUrl: string): RenderedEmail {
+  const body = `
+<p style="margin:0;font-size:14px;line-height:1.6;color:${C.text};">The password for your student portal account <strong style="color:${C.ink};">${esc(username)}</strong> was just changed, and you were signed out on every other device.</p>
+<p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:${C.text};">If this wasn’t you, reset your password again straight away and tell your class teacher.</p>`;
+
+  const text = [
+    `The password for your Al-Mahdrah student portal account "${username}" was just changed, and you were signed out on every other device.`,
+    ``,
+    `If this wasn't you, reset your password again straight away and tell your class teacher:`,
+    `${siteUrl}/student/forgot-password`,
+  ].join("\n");
+
+  return {
+    subject: "Your Al-Mahdrah password was changed",
+    html: shell({
+      preheader: "Your student portal password was changed.",
+      title: "Password changed",
+      subtitle: "Student portal",
+      body,
+      siteUrl,
+      cta: { label: "Sign in", href: `${siteUrl}/student/login` },
+      footer: esc(SECURITY_FOOTER),
     }),
     text,
   };

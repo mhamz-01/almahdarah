@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/student")) {
-    if (pathname === "/student/login" || pathname === "/student/request-access") {
+    if (pathname === "/student/login" || pathname === "/student/request-access" || pathname === "/student/forgot-password") {
       return NextResponse.next();
     }
 

@@ -59,7 +59,7 @@ export default function StudentLoginPage() {
               Book a free demo class →
             </Link>
             <br />
-            Lost your credentials? Message your class teacher on WhatsApp.
+            Forgot your username, or no email on your account? Message your class teacher on WhatsApp.
           </div>
         </div>
       </div>

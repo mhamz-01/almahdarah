@@ -9,7 +9,8 @@
     "lint": "eslint",
     "test:notes": "node --import ./tests/lesson-notes/register.mjs --experimental-transform-types --test \"tests/lesson-notes/*.test.ts\"",
     "test:email": "node --import ./tests/lesson-notes/register.mjs --experimental-transform-types --test \"tests/email/*.test.ts\"",
-    "test:plan": "node --import ./tests/lesson-notes/register.mjs --experimental-transform-types --test \"tests/task-plan/*.test.ts\""
+    "test:plan": "node --import ./tests/lesson-notes/register.mjs --experimental-transform-types --test \"tests/task-plan/*.test.ts\"",
+    "test:reset": "node --import ./tests/lesson-notes/register.mjs --experimental-transform-types --test \"tests/password-reset/*.test.ts\""
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.19",

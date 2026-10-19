@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const inputClasses =
@@ -74,6 +75,9 @@ export function StudentLoginForm() {
           />
           Keep me signed in
         </label>
+        <Link href="/student/forgot-password" className="text-[13px] font-bold text-primary">
+          Forgot password?
+        </Link>
       </div>
 
       <button

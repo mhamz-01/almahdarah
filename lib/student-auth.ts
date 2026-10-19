@@ -12,6 +12,7 @@ export const STUDENT_SESSION_TTL_SECONDS = 20 * 24 * 60 * 60; // 20 days
 export interface StudentSessionPayload {
   studentId: number;
   username: string;
+  issuedAt: number; // seconds since epoch (the JWT's iat)
 }
 
 function requireSecret(): string {
@@ -97,7 +98,7 @@ export async function verifyStudentSessionToken(token: string | undefined | null
     if (typeof payload.exp !== "number" || Math.floor(Date.now() / 1000) > payload.exp) return null;
     const studentId = Number(payload.sub);
     if (!Number.isInteger(studentId)) return null;
-    return { studentId, username: payload.username };
+    return { studentId, username: payload.username, issuedAt: typeof payload.iat === "number" ? payload.iat : 0 };
   } catch {
     return null;
   }
