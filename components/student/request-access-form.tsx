@@ -111,9 +111,12 @@ export function RequestAccessForm() {
         <span className={labelClasses}>Username</span>
         <input
           value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          onChange={(e) => setUsername(e.target.value.toLowerCase())}
           type="text"
           autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder="ahmad.k24"
           className={`${inputClasses} font-mono`}
         />

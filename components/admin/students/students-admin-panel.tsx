@@ -50,6 +50,9 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
 
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [welcome, setWelcome] = useState<
+    { state: "idle" } | { state: "sending" } | { state: "sent"; to: string } | { state: "error"; message: string }
+  >({ state: "idle" });
   const [editTarget, setEditTarget] = useState<StudentWithLoginStatus | null>(null);
 
   const [addOpen, setAddOpen] = useState(false);
@@ -68,6 +71,20 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
     setError(null);
     setCopied(false);
     setShowPassword(false);
+    setWelcome({ state: "idle" });
+  }
+
+  async function sendWelcomeEmail() {
+    if (!selected) return;
+    setWelcome({ state: "sending" });
+    try {
+      const res = await fetch(`/api/admin/students/${selected.id}/welcome-email`, { method: "POST" });
+      const json = (await res.json()) as { ok: boolean; error?: string; to?: string };
+      if (!res.ok || !json.ok) throw new Error(json.error ?? "Request failed");
+      setWelcome({ state: "sent", to: json.to ?? selected.email ?? "" });
+    } catch (e) {
+      setWelcome({ state: "error", message: e instanceof Error ? e.message : "Couldn't send the email" });
+    }
   }
 
   async function sendNote() {
@@ -424,6 +441,28 @@ Password: ${selected.password}`);
                 {copied ? "✓ Copied" : "Copy login"}
               </button>
             </div>
+            {!selected.lastLoginAt && (
+              <>
+                <button
+                  type="button"
+                  onClick={sendWelcomeEmail}
+                  disabled={welcome.state === "sending" || !selected.email || selected.password === null}
+                  title={
+                    !selected.email
+                      ? "This student has no email address"
+                      : selected.password === null
+                        ? "Set a new password with Edit first"
+                        : undefined
+                  }
+                  className="h-10 rounded-lg border-[1.5px] border-primary/40 bg-primary/10 text-[13px] font-bold text-primary transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {welcome.state === "sending" ? "Sending…" : "Send welcome email"}
+                </button>
+                {welcome.state === "sent" && <p className="text-[12.5px] font-semibold text-green">✓ Sent to {welcome.to}</p>}
+                {welcome.state === "error" && <p className="text-[12.5px] font-semibold text-red-600">{welcome.message}</p>}
+                {!selected.email && <p className="text-[12px] text-muted">No email address on file, so use Copy login instead.</p>}
+              </>
+            )}
           </div>
 
           <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">

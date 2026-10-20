@@ -11,6 +11,8 @@ const RESEND_BATCH_URL = "https://api.resend.com/emails/batch";
 const BATCH_SIZE = 100;
 // Resend allows ~2 requests/second per account; used only when falling back to one-by-one sends.
 const SINGLE_SEND_GAP_MS = 600;
+const NETWORK_RETRIES = 2;
+const NETWORK_RETRY_GAP_MS = 1000;
 
 export interface OutgoingEmail {
   to: string;
@@ -52,19 +54,34 @@ async function errorMessage(res: Response): Promise<string> {
   }
 }
 
+// Node's fetch only says "fetch failed"; the useful part (ENOTFOUND, ETIMEDOUT, ...) is in `cause`.
+function networkErrorMessage(e: unknown): string {
+  if (!(e instanceof Error)) return "Network error";
+  const cause = e.cause as { code?: string; message?: string } | undefined;
+  const detail = cause?.code ?? cause?.message;
+  return `Couldn't reach the email service (${detail ?? e.message})`;
+}
+
 export async function sendOne(message: OutgoingEmail): Promise<SendResult> {
   if (!emailConfigured()) return { to: message.to, ok: false, error: "Email is not configured (RESEND_API_KEY / EMAIL_FROM)" };
-  try {
-    const res = await fetch(RESEND_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify(payload(message)),
-    });
-    if (!res.ok) return { to: message.to, ok: false, error: await errorMessage(res) };
-    return { to: message.to, ok: true };
-  } catch (e) {
-    return { to: message.to, ok: false, error: e instanceof Error ? e.message : "Network error" };
+  let lastError = "Network error";
+  // Network failures (DNS hiccup, dropped connection) almost always mean Resend never got the
+  // request, so they are retried. An HTTP error response did reach it and is returned straight away.
+  for (let attempt = 0; attempt < NETWORK_RETRIES + 1; attempt++) {
+    if (attempt > 0) await new Promise((r) => setTimeout(r, NETWORK_RETRY_GAP_MS * attempt));
+    try {
+      const res = await fetch(RESEND_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify(payload(message)),
+      });
+      if (!res.ok) return { to: message.to, ok: false, error: await errorMessage(res) };
+      return { to: message.to, ok: true };
+    } catch (e) {
+      lastError = networkErrorMessage(e);
+    }
   }
+  return { to: message.to, ok: false, error: lastError };
 }
 
 /**

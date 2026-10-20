@@ -25,6 +25,7 @@ export function StudentRequestsPanel({ requests, loadError }: StudentRequestsPan
   const [busy, setBusy] = useState<{ id: number; action: "accept" | "reject" } | null>(null);
   const [error, setError] = useState<{ id: number; message: string } | null>(null);
   const [shown, setShown] = useState<Set<number>>(new Set());
+  const [notice, setNotice] = useState<{ tone: "ok" | "warn"; message: string } | null>(null);
 
   const visible = requests.filter((r) => r.status === filter);
   const count = (status: StudentRequestStatus) => requests.filter((r) => r.status === status).length;
@@ -32,14 +33,22 @@ export function StudentRequestsPanel({ requests, loadError }: StudentRequestsPan
   async function review(id: number, action: "accept" | "reject") {
     setBusy({ id, action });
     setError(null);
+    setNotice(null);
     try {
       const res = await fetch(`/api/admin/student-requests/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
       });
-      const json = (await res.json()) as { ok: boolean; error?: string };
+      const json = (await res.json()) as { ok: boolean; error?: string; emailSent?: boolean; emailError?: string | null };
       if (!res.ok || !json.ok) throw new Error(json.error ?? "Request failed");
+      if (action === "accept") {
+        setNotice(
+          json.emailSent
+            ? { tone: "ok", message: "Request accepted. A welcome email with their sign-in details was sent." }
+            : { tone: "warn", message: `Request accepted, but the welcome email wasn't sent: ${json.emailError ?? "unknown error"}. Share their sign-in details with them directly.` },
+        );
+      }
       router.refresh();
     } catch (e) {
       setError({ id, message: e instanceof Error ? e.message : "Couldn't update this request" });
@@ -61,8 +70,19 @@ export function StudentRequestsPanel({ requests, loadError }: StudentRequestsPan
     <div>
       <h1 className="font-display text-[24px] tracking-[-0.01em] text-ink uppercase">Join requests</h1>
       <p className="mt-1 text-[14px] text-muted">
-        Submitted from the student sign-in page. Accept a request and that person can sign in straight away.
+        Submitted from the student sign-in page. Accept a request and that person can sign in straight away. They are
+        emailed their sign-in details.
       </p>
+
+      {notice && (
+        <p
+          className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
+            notice.tone === "ok" ? "border-green/30 bg-green/10 text-green" : "border-red-600/30 bg-red-600/10 text-red-600"
+          }`}
+        >
+          {notice.message}
+        </p>
+      )}
 
       {loadError && (
         <p className="mt-4 rounded-xl border border-red-600/30 bg-red-600/10 px-4 py-3 text-sm text-red-600">

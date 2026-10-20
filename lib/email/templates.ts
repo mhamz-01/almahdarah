@@ -1,4 +1,4 @@
-// HTML + plain-text bodies for the two student emails. Email clients ignore most
+// HTML + plain-text bodies for the student emails. Email clients ignore most
 // CSS, so layout uses tables and inline styles. Every piece of user text goes
 // through esc() before it is placed in the HTML.
 
@@ -285,6 +285,55 @@ export function renderPasswordChanged(username: string, siteUrl: string): Render
       body,
       siteUrl,
       cta: { label: "Sign in", href: `${siteUrl}/student/login` },
+      footer: esc(SECURITY_FOOTER),
+    }),
+    text,
+  };
+}
+
+// Sign-in details for a new student: sent when a join request is accepted, and again
+// from the admin Students panel ("Send welcome email") until they first sign in.
+export function renderAccountApproved(opts: { name: string; username: string; password: string; siteUrl: string }): RenderedEmail {
+  const firstName = opts.name.trim().split(/\s+/)[0] || opts.name;
+  const loginUrl = `${opts.siteUrl}/student/login`;
+  const detail = (label: string, value: string) =>
+    `<tr><td style="padding:10px 14px;border-bottom:1px solid ${C.border};font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:${C.muted};font-weight:700;width:110px;">${esc(label)}</td>
+<td style="padding:10px 14px;border-bottom:1px solid ${C.border};font-family:Consolas,Menlo,monospace;font-size:15px;font-weight:700;color:${C.ink};">${esc(value)}</td></tr>`;
+  const passwordValue = opts.password;
+
+  const body = `
+<p style="margin:0 0 14px;font-size:14px;line-height:1.6;color:${C.text};">Assalamu alaikum ${esc(firstName)}, your Al-Mahdrah student portal account is ready. You can sign in now with these details:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid ${C.border};border-radius:12px;border-collapse:separate;overflow:hidden;">
+${detail("Username", opts.username)}
+${detail("Password", passwordValue)}
+</table>
+<p style="margin:14px 0 0;font-size:13px;line-height:1.6;color:${C.muted};">Usernames are all lowercase. The password is case-sensitive, so type it exactly as shown.</p>
+<p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:${C.text};">Keep this email private and never share your password with anyone. You can change it at any time with “Forgot password?” on the sign-in page.</p>`;
+
+  const text = [
+    `Assalamu alaikum ${firstName},`,
+    ``,
+    `Your Al-Mahdrah student portal account is ready. You can sign in now with these details:`,
+    ``,
+    `Username: ${opts.username}`,
+    `Password: ${passwordValue}`,
+    ``,
+    `Usernames are all lowercase. The password is case-sensitive, so type it exactly as shown.`,
+    ``,
+    `Sign in: ${loginUrl}`,
+    ``,
+    `Keep this email private and never share your password with anyone. You can change it at any time with "Forgot password?" on the sign-in page.`,
+  ].join("\n");
+
+  return {
+    subject: "Welcome to Al-Mahdrah: your student portal account is ready",
+    html: shell({
+      preheader: "Your student portal account is ready. Here are your sign-in details.",
+      title: "Your account is ready",
+      subtitle: "Student portal",
+      body,
+      siteUrl: opts.siteUrl,
+      cta: { label: "Sign in to the portal", href: loginUrl },
       footer: esc(SECURITY_FOOTER),
     }),
     text,

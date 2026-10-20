@@ -1,6 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_SESSION_COOKIE, isValidAdminSession } from "@/lib/admin-auth";
+import { sendOne, siteUrl } from "@/lib/email/send";
+import { renderAccountApproved } from "@/lib/email/templates";
+import { decryptSecret } from "@/lib/secret-box";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { StudentRequestRow } from "@/lib/types";
 
@@ -75,5 +78,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .eq("id", requestId);
   if (updateError) return NextResponse.json({ ok: false, error: updateError.message }, { status: 500 });
 
-  return NextResponse.json({ ok: true, studentId: student.id as number });
+  // Welcome email with their sign-in details. The account already exists at
+  // this point, so a failed send is reported back rather than failing the accept.
+  let emailError: string | null = null;
+  const password = decryptSecret(req.password_enc);
+  if (!req.email) {
+    emailError = "this request has no email address";
+  } else if (!password) {
+    emailError = "their password can't be shown. Set a new one with Edit, then use Send welcome email";
+  } else {
+    const result = await sendOne({
+      to: req.email,
+      ...renderAccountApproved({ name: req.name, username: req.username, password, siteUrl: siteUrl() }),
+    });
+    if (!result.ok) {
+      emailError = result.error ?? "Email failed";
+      console.error("[student-requests] welcome email failed:", emailError);
+    }
+  }
+
+  return NextResponse.json({ ok: true, studentId: student.id as number, emailSent: !emailError, emailError });
 }

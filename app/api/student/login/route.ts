@@ -6,7 +6,10 @@ import type { StudentAuthRow } from "@/lib/types";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as { username?: string; password?: string; remember?: boolean };
-  const username = typeof body.username === "string" ? body.username.trim() : "";
+  const rawUsername = typeof body.username === "string" ? body.username.trim() : "";
+  // Usernames are saved lowercase (lib/admin/student-validation.ts), so "Ahmad.k24"
+  // typed on a phone that capitalised the first letter still matches "ahmad.k24".
+  const username = rawUsername.toLowerCase();
   const password = typeof body.password === "string" ? body.password : "";
 
   if (!username || !password) {
@@ -14,7 +17,11 @@ export async function POST(request: Request) {
   }
 
   const supabase = createSupabaseAdminClient();
-  const { data } = await supabase.from("students").select("*").eq("username", username).maybeSingle();
+  let { data } = await supabase.from("students").select("*").eq("username", username).maybeSingle();
+  // Fallback for any older account whose username was saved with capitals.
+  if (!data && rawUsername !== username) {
+    ({ data } = await supabase.from("students").select("*").eq("username", rawUsername).maybeSingle());
+  }
   const student = data as StudentAuthRow | null;
 
   // Same generic error whether the username doesn't exist, no login has
