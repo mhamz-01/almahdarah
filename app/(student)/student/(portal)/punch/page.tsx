@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 
 const WEEKDAY_BY_UTC_INDEX: (Weekday | null)[] = [null, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", null];
 
+const WEEKDAY_ORDER: Weekday[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
 function addDaysIso(iso: string, days: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() + days);
@@ -51,9 +53,13 @@ export default async function StudentPunchPage() {
 
   const weekGroups: WeekGroup[] = stats.weeks.map((w, wi) => ({
     label: wi === 0 ? "This week" : w.range,
-    classes: schedule.flatMap((slot, i) => {
-      const cell = w.cells[i];
-      const iso = addDaysIso(w.startDate, i);
+    // Position comes from the slot's weekday, not its row order — the schedule
+    // can skip days or be sorted differently from Mon–Fri.
+    classes: [...schedule].sort((a, b) => WEEKDAY_ORDER.indexOf(a.day) - WEEKDAY_ORDER.indexOf(b.day)).flatMap((slot) => {
+      const dayIndex = WEEKDAY_ORDER.indexOf(slot.day);
+      if (dayIndex < 0) return [];
+      const cell = w.cells[dayIndex];
+      const iso = addDaysIso(w.startDate, dayIndex);
       if (iso < joinIso) return [];
       const isToday = iso === todayIso;
       let status: WeekClass["status"];
