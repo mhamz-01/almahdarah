@@ -63,7 +63,14 @@
   --color-navy: var(--navy);
   --color-gold: var(--gold);
   --color-green: var(--green);
+  --color-paper: var(--paper);
+  --color-mist: var(--mist-2);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-ink: var(--primary-ink);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
 
+  --font-kufi: var(--font-reem-kufi);
   --font-display: var(--font-archivo-black);
   --font-sans: var(--font-poppins);
   --font-serif: var(--font-spectral);
@@ -474,4 +481,111 @@ html.planner-dragging body {
   .fade-in {
     animation: none;
   }
+}
+
+/* ------------------------------------------------------------------
+   Design system v2 — scoped to the public home page (data-ds="v2").
+   Re-points the shared token names at the new palette so the rest of the
+   app (admin, student portal, inner public pages) keeps the original look.
+   ------------------------------------------------------------------ */
+[data-ds="v2"] {
+  --paper: #fafaf8;
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --mist-2: #e8eef3;
+  --mint: #e8eef3;
+  --ink: #0e2a47;
+  --fg: #0e2a47;
+  --text: #3a4a5c;
+  --muted: #6b7a89;
+  --border: rgba(14, 42, 71, 0.1);
+  --border-strong: rgba(14, 42, 71, 0.2);
+  --primary: #1182a3;
+  --primary-ink: #ffffff;
+  --primary-soft: #e3f1f6;
+  --accent: #c9a24a;
+  --accent-soft: #f6eedc;
+  --navy: #0e2a47;
+  --pattern: rgba(14, 42, 71, 0.07);
+  --logo-filter: none;
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-newsreader);
+
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--font-geist), system-ui, sans-serif;
+}
+
+[data-theme="dark"] [data-ds="v2"] {
+  --paper: #0b1622;
+  --bg: #0b1622;
+  --surface: #12202f;
+  --mist-2: #1a2b3d;
+  --mint: #1a2b3d;
+  --ink: #eef2f5;
+  --fg: #eef2f5;
+  --text: #b9c4cf;
+  --muted: #7f8e9c;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --primary: #3ba6c6;
+  --primary-ink: #0b1622;
+  --primary-soft: #123446;
+  --accent: #d9b45e;
+  --accent-soft: #2a2516;
+  --pattern: rgba(238, 242, 245, 0.06);
+  --logo-filter: invert(1) brightness(1.7);
+}
+
+[data-ds="v2"] ::selection {
+  background: var(--primary);
+  color: #fff;
+}
+
+[data-ds="v2"] .ds-lattice {
+  background-image:
+    repeating-linear-gradient(45deg, var(--pattern) 0 1px, transparent 1px 52px),
+    repeating-linear-gradient(-45deg, var(--pattern) 0 1px, transparent 1px 52px);
+}
+
+@keyframes ds-drift {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(10deg) scale(1.05); }
+}
+@keyframes ds-floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+}
+@keyframes ds-fillbar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes ds-ring {
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes ds-cue {
+  0% { transform: scaleY(0); transform-origin: top; }
+  45% { transform: scaleY(1); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+@keyframes ds-rise {
+  from { opacity: 0; transform: translateY(28px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+
+.ds-rise {
+  opacity: 0;
+  animation: ds-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  animation-delay: var(--d, 0ms);
+}
+
+/* hero copy waits for the logo to start gliding before it appears */
+[data-hero="wait"] .ds-rise { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-rise { opacity: 1; animation: none; }
+  [data-ds="v2"] [class*="animate-[ds"] { animation: none !important; }
 }
