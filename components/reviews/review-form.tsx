@@ -1,7 +1,6 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -59,31 +58,17 @@ export function ReviewForm() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-bg text-text">
-      <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex max-w-[720px] items-center gap-2.5 px-6 py-4">
-          <Image
-            src="/assets/almahdrah-logo.png"
-            alt="Al-Mahdrah"
-            width={32}
-            height={32}
-            className="h-8 w-auto [filter:var(--logo-filter)]"
-          />
-          <span className="font-display text-sm tracking-[0.01em] text-ink">AL-MAHDRAH</span>
-        </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-[720px] flex-1 px-6 py-10 sm:py-14">
+    <div className="bg-bg text-text">
+      <div className="mx-auto w-full max-w-[720px] px-6 py-[clamp(48px,8vw,96px)]">
         {submitted ? (
-          <div className="rounded-[22px] border border-green/30 bg-mint p-7 sm:p-9">
+          <div className="rounded-2xl border border-green/30 bg-mint p-7 sm:p-9">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green/15">
-              <span className="text-2xl leading-none font-extrabold text-green">✓</span>
+              <span className="text-2xl leading-none font-extrabold text-green">âœ“</span>
             </div>
-            <span className="mt-3.5 inline-flex items-center gap-2.5 text-[12.5px] font-bold tracking-[0.2em] text-green uppercase">
-              <span className="h-0.5 w-[22px] bg-green" />
-              Review received
+            <span className="mt-4 block font-mono text-xs tracking-[0.1em] text-green">
+              REVIEW RECEIVED
             </span>
-            <h1 className="mt-3.5 font-display text-[clamp(24px,3vw,34px)] leading-[1.04] tracking-[-0.01em] text-ink uppercase">
+            <h1 className="mt-3 text-[clamp(30px,4vw,46px)] leading-[1.04] font-semibold tracking-[-0.04em] text-ink">
               Thank you, {form.name.trim().split(" ")[0]}
             </h1>
             <p className="mt-3 max-w-[52ch] text-[15px] text-text">
@@ -97,20 +82,19 @@ export function ReviewForm() {
           </div>
         ) : (
           <div>
-            <span className="inline-flex items-center gap-2.5 text-[12.5px] font-bold tracking-[0.2em] text-primary uppercase">
-              <span className="h-0.5 w-[22px] bg-primary" />
-              Share your experience
+            <span className="block font-mono text-xs tracking-[0.1em] text-primary">
+              SHARE YOUR EXPERIENCE
             </span>
-            <h1 className="mt-3.5 font-display text-[clamp(26px,3.4vw,40px)] leading-[1.04] tracking-[-0.01em] text-ink uppercase">
+            <h1 className="mt-4 max-w-[16ch] text-[clamp(36px,5vw,60px)] leading-[1.02] font-semibold tracking-[-0.045em] text-balance text-ink">
               Tell us about your experience
             </h1>
-            <p className="mt-3 max-w-[54ch] text-[15px] text-text">
-              A minute of your time — your honest words help other Muslim families discover Al-Mahdrah.
+            <p className="mt-5 max-w-[48ch] text-[17px] leading-[1.6] text-text">
+              A minute of your time â€” your honest words help other Muslim families discover Al-Mahdrah.
             </p>
 
             <div className="mt-8 flex max-w-[560px] flex-col gap-[18px]">
               <label className="flex flex-col gap-[7px]">
-                <span className="text-[13px] font-bold text-ink">I am a</span>
+                <span className="text-[13.5px] font-semibold text-ink">I am a</span>
                 <Select
                   value={form.reviewerType}
                   onValueChange={(value) => updateField("reviewerType", value as ReviewFormState["reviewerType"])}
@@ -126,7 +110,7 @@ export function ReviewForm() {
               </label>
 
               <label className="flex flex-col gap-[7px]">
-                <span className="text-[13px] font-bold text-ink">Full name</span>
+                <span className="text-[13.5px] font-semibold text-ink">Full name</span>
                 <input
                   value={form.name}
                   onChange={(e) => updateField("name", e.target.value)}
@@ -138,7 +122,7 @@ export function ReviewForm() {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-[7px]">
-                  <span className="text-[13px] font-bold text-ink">Country</span>
+                  <span className="text-[13.5px] font-semibold text-ink">Country</span>
                   <input
                     value={form.country}
                     onChange={(e) => updateField("country", e.target.value)}
@@ -148,7 +132,7 @@ export function ReviewForm() {
                   />
                 </label>
                 <label className="flex flex-col gap-[7px]">
-                  <span className="text-[13px] font-bold text-ink">City</span>
+                  <span className="text-[13.5px] font-semibold text-ink">City</span>
                   <input
                     value={form.city}
                     onChange={(e) => updateField("city", e.target.value)}
@@ -160,17 +144,17 @@ export function ReviewForm() {
               </div>
 
               <div className="flex flex-col gap-[7px]">
-                <span className="text-[13px] font-bold text-ink">Your rating</span>
+                <span className="text-[13.5px] font-semibold text-ink">Your rating</span>
                 <StarRatingInput value={form.rating} onChange={(value) => updateField("rating", value)} />
               </div>
 
               <label className="flex flex-col gap-[7px]">
-                <span className="text-[13px] font-bold text-ink">Your review</span>
+                <span className="text-[13.5px] font-semibold text-ink">Your review</span>
                 <textarea
                   value={form.reviewText}
                   onChange={(e) => updateField("reviewText", e.target.value)}
                   rows={5}
-                  placeholder="Share what your experience with Al-Mahdrah has been like…"
+                  placeholder="Share what your experience with Al-Mahdrah has been likeâ€¦"
                   className="resize-y rounded-xl border-[1.5px] border-border-strong bg-surface px-[15px] py-[13px] text-[14.5px] text-ink transition-colors focus:border-primary focus:shadow-[0_0_0_4px_rgba(17,130,163,0.16)] focus:outline-none"
                 />
               </label>
@@ -179,21 +163,21 @@ export function ReviewForm() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={!isValid || isSubmitting}
-                className={`mt-1.5 flex h-[54px] items-center justify-center gap-[9px] rounded-full text-[15.5px] font-bold transition-colors duration-200 ${
+                className={`mt-1.5 flex h-[54px] items-center justify-center gap-[9px] rounded-full text-[15.5px] font-semibold transition-colors duration-200 ${
                   isValid && !isSubmitting
-                    ? "cursor-pointer bg-primary text-white hover:brightness-[1.07]"
+                    ? "cursor-pointer bg-primary text-primary-ink hover:-translate-y-px hover:shadow-[0_10px_22px_-10px_rgba(17,130,163,.7)]"
                     : "cursor-not-allowed bg-surface-2 text-muted"
                 }`}
               >
-                {isSubmitting ? "Submitting…" : "Submit review"}
+                {isSubmitting ? "Submittingâ€¦" : "Submit review"}
               </button>
               {submitError && (
                 <p className="text-center text-sm font-semibold text-red-600">
-                  Something went wrong submitting your review — please try again.
+                  Something went wrong submitting your review â€” please try again.
                 </p>
               )}
               <p className="text-center text-xs text-muted">
-                🔒 Shared only with the Al-Mahdrah team — never sold or published without your permission.
+                ðŸ”’ Shared only with the Al-Mahdrah team â€” never sold or published without your permission.
               </p>
               <p className="text-center text-xs text-muted">
                 <Link href="/" className="underline hover:text-ink">
@@ -203,7 +187,7 @@ export function ReviewForm() {
             </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

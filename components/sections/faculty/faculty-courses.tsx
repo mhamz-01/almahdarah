@@ -14,12 +14,12 @@ export function FacultyCourses({ courses, firstName }: FacultyCoursesProps) {
   if (courses.length === 0) return null;
 
   return (
-    <section id="courses-taught" className="mx-auto max-w-[1160px] px-7 py-16 sm:py-20 lg:py-[92px]">
+    <section id="courses-taught" className="mx-auto max-w-[1200px] px-7 py-16 sm:py-20 lg:py-[92px]">
       <Reveal>
         <Eyebrow className="text-primary" lineClassName="bg-primary">
           Courses taught
         </Eyebrow>
-        <h2 className="mt-3.5 font-display text-[clamp(24px,2.8vw,36px)] leading-none tracking-[-0.01em] text-ink uppercase">
+        <h2 className="mt-3.5 text-[clamp(28px,3.4vw,44px)] leading-[1.05] font-semibold tracking-[-0.04em] text-ink">
           Learn directly with {firstName}
         </h2>
       </Reveal>
@@ -29,7 +29,7 @@ export function FacultyCourses({ courses, firstName }: FacultyCoursesProps) {
           <Reveal key={course.slug} delay={i * 80}>
             <Link
               href={`/courses/${course.slug}`}
-              className="group relative flex h-full flex-col overflow-hidden rounded-[22px] border border-border bg-surface shadow-[var(--shadow-sm)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[var(--shadow-md)]"
+              className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all duration-200 hover:-translate-y-1 hover:border-primary/50 hover:shadow-[var(--shadow-md)]"
             >
               <span className={`absolute inset-x-0 top-0 h-[5px] ${accentBg[course.accent]}`} />
               <div className={`flex h-[120px] items-center justify-between p-[18px] ${accentSoftBg[course.accent]}`}>

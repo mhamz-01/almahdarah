@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { V2Page } from "@/components/home/v2-page";
 import { ReviewsExplorer } from "@/components/reviews/reviews-explorer";
 import { getPublishedReviews } from "@/lib/supabase";
 
@@ -16,12 +15,8 @@ export default async function ReviewsPage() {
   const { data, error } = await getPublishedReviews();
 
   return (
-    <>
-      <Header />
-      <main>
-        <ReviewsExplorer reviews={data ?? []} loadError={error?.message ?? null} />
-      </main>
-      <Footer />
-    </>
+    <V2Page>
+      <ReviewsExplorer reviews={data ?? []} loadError={error?.message ?? null} />
+    </V2Page>
   );
 }

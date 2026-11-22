@@ -14,7 +14,7 @@ export function getCourseCopy(type: CourseDetail["type"]) {
     formatLine: isPaid ? "Live 1:1 sessions" : "Live community class",
     certLine: "Certificate on completion",
     trustLine: isPaid ? "Taught, never transactional" : "No sign-up friction",
-    coursesAnchor: isPaid ? "/#courses" : "/#free",
+    coursesAnchor: isPaid ? "/#programmes" : "/#free",
     stickyLabel: isPaid ? "Book free demo" : "Join free",
   };
 }

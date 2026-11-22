@@ -1,60 +1,41 @@
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
-import { Hero } from "@/components/sections/hero";
-import { Vision } from "@/components/sections/vision";
-import { Trust } from "@/components/sections/trust";
-import { PaidCourses } from "@/components/sections/paid-courses";
-import { FreeCourses } from "@/components/sections/free-courses";
-import { Faculty } from "@/components/sections/faculty";
-// import { Journal } from "@/components/sections/journal"; // hidden for now
-import { DemoCta } from "@/components/sections/demo-cta";
-import { LazySection } from "@/components/ui/lazy-section";
-import { VisionSkeleton } from "@/components/skeletons/vision-skeleton";
-import { TrustSkeleton } from "@/components/skeletons/trust-skeleton";
-import { PaidCoursesSkeleton } from "@/components/skeletons/paid-courses-skeleton";
-import { FreeCoursesSkeleton } from "@/components/skeletons/free-courses-skeleton";
-import { FacultySkeleton } from "@/components/skeletons/faculty-skeleton";
-// import { JournalSkeleton } from "@/components/skeletons/journal-skeleton"; // hidden for now
-import { DemoCtaSkeleton } from "@/components/skeletons/demo-cta-skeleton";
+import { Suspense } from "react";
+import { HomeHeader } from "@/components/home/home-header";
+import { HomeHero } from "@/components/home/hero";
+import { Tension } from "@/components/home/tension";
+import { ReviewsSection } from "@/components/home/reviews-section";
+import { Method } from "@/components/home/method";
+import {
+  FinalCta,
+  FreeSection,
+  HomeFooter,
+  ProgrammesSection,
+  RhythmSection,
+  SalafSection,
+  TeachersSection,
+} from "@/components/home/sections";
+import { dsFontVariables } from "@/lib/fonts-v2";
 
+// v2 design system: tokens are scoped to [data-ds="v2"] (see app/globals.css) so the rest of the
+// site keeps its current look until those pages are migrated.
 export default function Home() {
   return (
-    <>
-      <Header />
+    <div data-ds="v2" className={`${dsFontVariables} min-h-screen`}>
+      <HomeHeader />
       <main>
-        <Hero />
-
-        <LazySection id="vision" fallback={<VisionSkeleton />} minHeight={700}>
-          <Vision />
-        </LazySection>
-
-        <LazySection fallback={<TrustSkeleton />} minHeight={900}>
-          <Trust />
-        </LazySection>
-
-        <LazySection id="courses" fallback={<PaidCoursesSkeleton />} minHeight={800}>
-          <PaidCourses />
-        </LazySection>
-
-        <LazySection fallback={<FreeCoursesSkeleton />} minHeight={800}>
-          <FreeCourses />
-        </LazySection>
-
-        <LazySection id="faculty" fallback={<FacultySkeleton />} minHeight={600}>
-          <Faculty />
-        </LazySection>
-
-        {/* Journal section hidden for now
-        <LazySection fallback={<JournalSkeleton />} minHeight={600}>
-          <Journal />
-        </LazySection>
-        */}
-
-        <LazySection fallback={<DemoCtaSkeleton />} minHeight={480}>
-          <DemoCta />
-        </LazySection>
+        <HomeHero />
+        <Tension />
+        <Method />
+        <Suspense fallback={null}>
+          <ReviewsSection />
+        </Suspense>
+        <FreeSection />
+        <ProgrammesSection />
+        <RhythmSection />
+        <TeachersSection />
+        <SalafSection />
+        <FinalCta />
       </main>
-      <Footer />
-    </>
+      <HomeFooter />
+    </div>
   );
 }

@@ -798,7 +798,7 @@ export const courseDetails: CourseDetail[] = [
     ],
     testimonials: [],
     ctaHeadline: "Join this week's class.",
-    ctaSub: "Free to join, every Monday at 7:50 PM — no fee, ever.",
+    ctaSub: "Live every Monday after Isha. Join the community and be part of the class.",
     steps: freeSteps,
     faqs: [
       {
@@ -833,7 +833,7 @@ export const courseDetails: CourseDetail[] = [
     teacherQuote: "Every act of worship should be understood from the authentic Sunnah, not guessed at.",
     heroQuote: "Whomever Allah wishes good for, He gives him understanding of the religion.",
     heroQuoteSource: "Prophet Muhammad ﷺ · Sahih al-Bukhari",
-    durationLine: "Weekly live class · Thursdays",
+    durationLine: "Weekly live class · Wednesdays",
     statStudents: "100+",
     accent: "green",
     formatLine: "Live weekly class",
@@ -883,7 +883,7 @@ export const courseDetails: CourseDetail[] = [
     ],
     testimonials: [],
     ctaHeadline: "Join this week's class.",
-    ctaSub: "Free to join, every Thursday at 7:50 PM — no fee, ever.",
+    ctaSub: "Live every Wednesday after Isha. Join the community and be part of the class.",
     steps: freeSteps,
     faqs: [
       {
@@ -969,7 +969,7 @@ export const courseDetails: CourseDetail[] = [
     ],
     testimonials: [],
     ctaHeadline: "Join this week's class.",
-    ctaSub: "Free to join, every Tuesday & Wednesday at 7:50 PM — no fee, ever.",
+    ctaSub: "Live every Tuesday after Isha. Join the community and be part of the class.",
     steps: freeSteps,
     faqs: [
       {
@@ -981,6 +981,87 @@ export const courseDetails: CourseDetail[] = [
         q: "Is this class for men or women?",
         a: "Separate classes are available — let us know your preference when you join the community.",
       },
+      {
+        q: "Is there a certificate on completion?",
+        a: "A certificate of completion is available on request.",
+      },
+    ],
+  },
+  {
+    slug: "aqeedah-at-tadmuriyyah",
+    type: "free",
+    category: "Aqīdah",
+    title: "Aqeedah at-Tadmuriyyah",
+    subtitle:
+      "Ibn Taymiyyah's al-Risālah at-Tadmuriyyah: Allah's Names and Attributes, and Divine Decree — live, every week.",
+    rating: "5.0",
+    studentsLine: "100+ students enrolled",
+    levelLine: "Intermediate",
+    teacherName: "Al-Mahdrah Teacher",
+    teacherRole: "Aqīdah Teacher",
+    teacherBio:
+      "Teaches al-Risālah at-Tadmuriyyah line by line, tying each principle to the Qur'an, the authentic Sunnah and the understanding of the righteous predecessors.",
+    teacherQuote: "There is nothing like Him, and He is the All-Hearing, the All-Seeing.",
+    heroQuote: "There is nothing like Him, and He is the All-Hearing, the All-Seeing.",
+    heroQuoteSource: "Qur'an 42:11",
+    durationLine: "Weekly live class · Fridays",
+    statStudents: "100+",
+    accent: "primary-2",
+    formatLine: "Live weekly class",
+    outcomes: [
+      "Study al-Risālah at-Tadmuriyyah by Shaykh al-Islām Ibn Taymiyyah",
+      "Understand how the Salaf affirmed Allah's Names and Attributes",
+      "Learn the principles that protect against distortion, denial and likening Allah to creation",
+      "Understand Divine Decree (Qadr) and its place alongside Allah's commands and prohibitions",
+      "Recognise the common errors that come from misunderstanding these matters",
+      "Build certainty and sincerity in worship through sound belief",
+    ],
+    modules: [
+      {
+        title: "The Names and Attributes",
+        meta: "3 lessons · ~50 min avg",
+        lessons: [
+          "Why this treatise was written, and who it answers",
+          "The Salaf's way of affirming the Names and Attributes",
+          "Guarding against distortion, denial and likening",
+        ],
+      },
+      {
+        title: "The Principles",
+        meta: "3 lessons · ~50 min avg",
+        lessons: [
+          "Foundational rules for understanding the texts of the Attributes",
+          "Meaning, reality and what is left to Allah's knowledge",
+          "Responding to common objections with evidence",
+        ],
+      },
+      {
+        title: "Divine Decree (Qadr)",
+        meta: "3 lessons · ~50 min avg",
+        lessons: [
+          "Allah's decree, will and command: how they relate",
+          "Responsibility, choice and reliance on Allah",
+          "How sound belief shapes sincere worship",
+        ],
+      },
+    ],
+    logistics: liveFreeLogistics,
+    audience: [
+      "Students ready for a classical text in Aqīdah",
+      "Those who have studied the basics of creed and want more depth",
+      "Adults and teens ready for a weekly structured class",
+      "Anyone wanting to answer common doubts with evidence",
+    ],
+    testimonials: [],
+    ctaHeadline: "Join this week's class.",
+    ctaSub: "Live every Friday after Isha. Join the community and be part of the class.",
+    steps: freeSteps,
+    faqs: [
+      {
+        q: "Do I need to have studied Aqīdah before?",
+        a: "Some background helps, but the class explains each passage as it comes. If you are brand new, start with the recorded Wasitiyyah series first.",
+      },
+      ...sharedFaqs("free"),
       {
         q: "Is there a certificate on completion?",
         a: "A certificate of completion is available on request.",
@@ -1080,6 +1161,106 @@ export const courseDetails: CourseDetail[] = [
       {
         q: "Can I go at my own pace?",
         a: "Yes — every session is already recorded, so you can watch in order at whatever pace suits you.",
+      },
+      {
+        q: "Is there a certificate on completion?",
+        a: "A certificate of completion is available on request.",
+      },
+    ],
+  },
+  {
+    slug: "arbaeen-nawawi",
+    type: "free",
+    category: "Hadīth",
+    title: "Arbaʿīn an-Nawawī",
+    subtitle:
+      "Forty foundational hadiths gathered by Imam an-Nawawī, each one a pillar of the religion. The full series is recorded and ready to watch.",
+    rating: "5.0",
+    studentsLine: "100+ students enrolled",
+    levelLine: "All levels",
+    teacherName: "Al-Mahdrah Teacher",
+    teacherRole: "Hadith Teacher",
+    teacherBio:
+      "Explains each of the forty hadiths with its wording, meaning and the lessons scholars have drawn from it, upon the methodology of Ahl al-Sunnah.",
+    teacherQuote: "Forty hadiths that carry the foundations of the whole religion.",
+    heroQuote: "Actions are only by intentions, and every person will have only what they intended.",
+    heroQuoteSource: "Prophet Muhammad ﷺ · Sahih al-Bukhari & Muslim",
+    durationLine: "Full series · watch anytime",
+    statStudents: "100+",
+    accent: "green",
+    formatLine: "Recorded playlist",
+    outcomes: [
+      "Study the forty hadiths of Imam an-Nawawī with explanation",
+      "Understand intentions, sincerity and the meaning of Islām, Īmān and Iḥsān",
+      "Learn the rulings and manners that shape daily life from the Sunnah",
+      "Memorise key hadiths with their meanings",
+      "Apply the Prophet's ﷺ guidance in character, worship and dealings",
+      "Build a strong foundation for studying larger hadith works",
+    ],
+    modules: [
+      {
+        title: "Foundations of the Religion",
+        meta: "3 lessons · ~50 min avg",
+        lessons: [
+          "Intentions and sincerity",
+          "Islām, Īmān and Iḥsān",
+          "The pillars of Islam and the nature of religion",
+        ],
+      },
+      {
+        title: "Character & Conduct",
+        meta: "3 lessons · ~50 min avg",
+        lessons: [
+          "Modesty, good manners and brotherhood",
+          "Not harming others, and speaking well or staying silent",
+          "Honouring neighbours and guests",
+        ],
+      },
+      {
+        title: "Worship & Reliance on Allah",
+        meta: "3 lessons · ~50 min avg",
+        lessons: [
+          "Taqwā and following a bad deed with a good one",
+          "Reliance on Allah and seeking His help",
+          "Steadfastness and avoiding what is doubtful",
+        ],
+      },
+    ],
+    logistics: recordedFreeLogistics,
+    audience: [
+      "Anyone starting their study of hadith",
+      "Students wanting the core hadiths of the religion explained",
+      "Adults and teens who prefer to learn at their own pace",
+      "Families wanting a short, strong text to study together",
+    ],
+    testimonials: [],
+    ctaHeadline: "Watch the full series.",
+    ctaSub: "The complete playlist is ready. Join the community for access, free, anytime.",
+    steps: [
+      { num: "1", title: "Join the community", text: "No card, no approval wait. Get the playlist link today." },
+      {
+        num: "2",
+        title: "Watch at your pace",
+        text: "The full series is already recorded, so go through it whenever suits you.",
+      },
+      { num: "3", title: "Discuss in community", text: "Ask questions and revisit any part of the series, anytime." },
+    ],
+    faqs: [
+      {
+        q: "Is this class still running live?",
+        a: "No. The live series has finished. The complete playlist is available now, so you can start anytime.",
+      },
+      {
+        q: "How do I get access to the playlist?",
+        a: "Tap \"Watch the full series\" and join the community. You'll receive the playlist link with no approval wait.",
+      },
+      {
+        q: "Is this really free, with no hidden steps?",
+        a: "Yes. The full series is free to watch, with no card required at any point.",
+      },
+      {
+        q: "Can I go at my own pace?",
+        a: "Yes. Every session is already recorded, so you can watch in order at whatever pace suits you.",
       },
       {
         q: "Is there a certificate on completion?",

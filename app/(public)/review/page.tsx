@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { V2Page } from "@/components/home/v2-page";
 import { ReviewForm } from "@/components/reviews/review-form";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function ReviewPage() {
-  return <ReviewForm />;
+  return (
+    <V2Page>
+      <ReviewForm />
+    </V2Page>
+  );
 }

@@ -1,13 +1,11 @@
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { V2Page } from "@/components/home/v2-page";
 import { CourseSectionSkeleton } from "@/components/skeletons/course-section-skeleton";
 import { SkeletonBlock, SkeletonLine } from "@/components/ui/skeleton";
 
 export default function CourseLoading() {
   return (
-    <>
-      <Header />
-      <main>
+    <V2Page>
+      <>
         <div className="mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-10 px-7 pt-10 pb-16 lg:grid-cols-2 lg:gap-16 lg:pb-[68px]">
           <div className="space-y-4">
             <SkeletonLine className="w-32" />
@@ -21,8 +19,7 @@ export default function CourseLoading() {
 
         <CourseSectionSkeleton rows={4} bordered />
         <CourseSectionSkeleton rows={3} />
-      </main>
-      <Footer />
-    </>
+      </>
+    </V2Page>
   );
 }

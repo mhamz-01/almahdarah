@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { V2Page } from "@/components/home/v2-page";
 import { StickyEnrollBar } from "@/components/layout/sticky-enroll-bar";
 import { CourseHero } from "@/components/sections/course/course-hero";
 import { CourseOutcomes } from "@/components/sections/course/course-outcomes";
@@ -76,9 +75,8 @@ export default async function CoursePage({ params }: CoursePageProps) {
   }
 
   return (
-    <>
-      <Header />
-      <main>
+    <V2Page>
+      <>
         <CourseHero course={course} />
 
         <LazySection fallback={<CourseSectionSkeleton rows={course.outcomes.length} />} minHeight={560}>
@@ -108,10 +106,8 @@ export default async function CoursePage({ params }: CoursePageProps) {
         <LazySection fallback={<CourseSectionSkeleton rows={3} />} minHeight={520}>
           <CourseFaqSection faqs={course.faqs} />
         </LazySection>
-      </main>
-      <Footer />
-   
-    </>
+      </>
+    </V2Page>
   );
 }
 

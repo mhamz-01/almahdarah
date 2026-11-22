@@ -9,9 +9,9 @@ interface EyebrowProps {
 export function Eyebrow({ children, className = "", lineClassName = "" }: EyebrowProps) {
   return (
     <span
-      className={`inline-flex items-center gap-[9px] text-[12.5px] font-bold uppercase tracking-[0.2em] ${className}`}
+      className={`ds-eyebrow inline-flex items-center gap-[9px] text-[12.5px] font-bold uppercase tracking-[0.2em] ${className}`}
     >
-      <span className={`inline-block h-[2px] w-[22px] ${lineClassName}`} />
+      <span className={`ds-eyebrow-line inline-block h-[2px] w-[22px] ${lineClassName}`} />
       {children}
     </span>
   );

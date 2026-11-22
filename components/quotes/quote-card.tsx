@@ -29,7 +29,7 @@ export function QuoteCard({ quote, onOpen, setRef, sway = true }: QuoteCardProps
       <div
         ref={setRef}
         style={sway ? swayVars(quote.id) : undefined}
-        className={`relative flex h-[330px] flex-col border border-border bg-bg p-7 transition-colors duration-200 hover:border-border-strong hover:bg-surface ${
+        className={`relative flex h-[330px] flex-col rounded-2xl border border-border bg-surface p-7 transition-colors duration-200 hover:border-primary/50 ${
           sway ? "animate-sway" : ""
         }`}
       >
@@ -52,7 +52,7 @@ export function QuoteCard({ quote, onOpen, setRef, sway = true }: QuoteCardProps
 
         {quote.type === "passage" ? (
           <>
-            <h3 className="mb-2.5 line-clamp-2 flex-none [overflow-wrap:anywhere] font-display text-[14.5px] leading-[1.3] tracking-[0.01em] text-ink uppercase">
+            <h3 className="mb-2.5 line-clamp-2 flex-none [overflow-wrap:anywhere] text-[16px] leading-[1.3] font-semibold tracking-[-0.01em] text-ink">
               {quote.title}
             </h3>
             <p className="line-clamp-[5] min-h-0 flex-1 [overflow-wrap:anywhere] font-serif text-[16px] leading-[1.7] text-text">

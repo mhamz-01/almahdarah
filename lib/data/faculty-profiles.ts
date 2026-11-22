@@ -25,6 +25,7 @@ export const facultyProfiles: FacultyProfile[] = [
       "quran-tafsir",
       "umdat-al-ahkam",
       "arabic-language",
+      "aqeedah-at-tadmuriyyah",
       "aqeedah-al-wasitiyyah",
       "islamic-studies",
       "quran-recitation",

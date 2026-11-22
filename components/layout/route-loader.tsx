@@ -79,12 +79,17 @@ export function RouteLoader() {
 
   return (
     <div
+      data-ds="v2"
       aria-hidden={!visible}
-      className={`fixed inset-0 z-[999] flex items-center justify-center bg-bg transition-opacity duration-500 ease-out ${
-        visible ? "opacity-100" : "pointer-events-none opacity-0"
+      className={`fixed inset-0 z-[999] flex items-center justify-center overflow-hidden bg-paper transition-[opacity,visibility] duration-500 ease-out ${
+        visible ? "visible opacity-100" : "pointer-events-none invisible opacity-0"
       }`}
     >
-      <div className="bg-pattern pointer-events-none absolute inset-0 opacity-40" />
+      {/* the home page's lattice, fading out from the centre */}
+      <div
+        aria-hidden
+        className="ds-lattice pointer-events-none absolute inset-0 [mask-image:radial-gradient(circle_at_center,#000_0%,transparent_62%)]"
+      />
       <LogoLoader className="relative" />
     </div>
   );

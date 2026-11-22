@@ -17,7 +17,7 @@ export function FacultySpecialties({ faculty }: FacultySpecialtiesProps) {
           <Eyebrow className="text-primary-2" lineClassName="bg-primary-2">
             Areas of expertise
           </Eyebrow>
-          <h2 className="mt-3.5 font-display text-[clamp(24px,2.8vw,36px)] leading-none tracking-[-0.01em] text-ink uppercase">
+          <h2 className="mt-3.5 text-[clamp(28px,3.4vw,44px)] leading-[1.05] font-semibold tracking-[-0.04em] text-ink">
             What {firstName} teaches best
           </h2>
         </Reveal>
@@ -26,7 +26,7 @@ export function FacultySpecialties({ faculty }: FacultySpecialtiesProps) {
           {faculty.specialties.map((specialty, i) => (
             <Reveal key={specialty.title} delay={i * 70}>
               <div className="h-full rounded-[18px] border border-border bg-surface p-[22px] transition-shadow duration-200 hover:shadow-[var(--shadow-sm)]">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 font-display text-base text-primary">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 font-mono text-base text-primary">
                   {specialty.icon}
                 </span>
                 <h3 className="mt-3.5 mb-1.5 text-base font-bold text-ink">{specialty.title}</h3>

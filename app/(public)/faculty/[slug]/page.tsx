@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { V2Page } from "@/components/home/v2-page";
 import { FacultyHero } from "@/components/sections/faculty/faculty-hero";
 import { FacultySpecialties } from "@/components/sections/faculty/faculty-specialties";
 import { FacultyCourses } from "@/components/sections/faculty/faculty-courses";
@@ -41,9 +40,8 @@ export default async function FacultyPage({ params }: FacultyPageProps) {
   const firstName = getFacultyFirstName(faculty.name);
 
   return (
-    <>
-      <Header />
-      <main>
+    <V2Page>
+      <>
         <FacultyHero faculty={faculty} hasPaidCourse={hasPaidCourse} primaryCourse={primaryCourse} />
 
         <LazySection fallback={<CourseSectionSkeleton rows={4} bordered />} minHeight={480}>
@@ -57,8 +55,7 @@ export default async function FacultyPage({ params }: FacultyPageProps) {
         <LazySection fallback={<CourseSectionSkeleton rows={1} />} minHeight={420}>
           <FacultyDemoCta faculty={faculty} hasPaidCourse={hasPaidCourse} primaryCourse={primaryCourse} />
         </LazySection>
-      </main>
-      <Footer />
-    </>
+      </>
+    </V2Page>
   );
 }

@@ -91,7 +91,7 @@ export const freeCourses: FreeCourse[] = [
     description:
       "Understand the meanings of the Qur'an through the explanations of the Salaf and authentic narrations.",
     duration: "Weekly live class",
-    schedule: "Live · Every Monday · 7:50 PM PKT",
+    schedule: "Live · Every Monday · After Isha (PKT)",
     accent: "primary",
     live: true,
   },
@@ -102,7 +102,7 @@ export const freeCourses: FreeCourse[] = [
     description:
       "Authentic hadiths on worship and daily life — prayer, fasting, zakah, Hajj and more.",
     duration: "Weekly live class",
-    schedule: "Live · Every Thursday · 7:50 PM PKT",
+    schedule: "Live · Every Wednesday · After Isha (PKT)",
     accent: "green",
     live: true,
   },
@@ -113,8 +113,19 @@ export const freeCourses: FreeCourse[] = [
     description:
       "Read classical Arabic through Ad-Dā' wa ad-Dawā', building vocabulary and grammar as you go.",
     duration: "Weekly live class",
-    schedule: "Live · Every Tue & Wed · 7:50 PM PKT",
+    schedule: "Live · Every Tuesday · After Isha (PKT)",
     accent: "gold",
+    live: true,
+  },
+  {
+    slug: "aqeedah-at-tadmuriyyah",
+    glyph: "ر",
+    title: "Aqeedah at-Tadmuriyyah",
+    description:
+      "Ibn Taymiyyah's al-Risālah at-Tadmuriyyah: affirming Allah's Names and Attributes as the Salaf did, and the truth about Divine Decree.",
+    duration: "Weekly live class",
+    schedule: "Live · Every Friday · After Isha (PKT)",
+    accent: "primary-2",
     live: true,
   },
   {
@@ -126,6 +137,17 @@ export const freeCourses: FreeCourse[] = [
     duration: "Full series · watch anytime",
     schedule: "Completed · Full playlist available",
     accent: "navy",
+    live: false,
+  },
+  {
+    slug: "arbaeen-nawawi",
+    glyph: "ن",
+    title: "Arbaʿīn an-Nawawī",
+    description:
+      "Forty foundational hadiths gathered by Imam an-Nawawī, each one a pillar of the religion, explained in a complete recorded series.",
+    duration: "Full series · watch anytime",
+    schedule: "Completed · Full playlist available",
+    accent: "green",
     live: false,
   },
 ];

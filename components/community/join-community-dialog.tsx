@@ -75,7 +75,7 @@ export function JoinCommunityDialog({ courseTitle, children }: JoinCommunityDial
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green/15">
               <span className="text-xl leading-none font-extrabold text-green">✓</span>
             </div>
-            <DialogTitle className="mt-4">You&apos;re in</DialogTitle>
+            <DialogTitle className="mt-4">You&apos;re part of the journey</DialogTitle>
             <DialogDescription>
               Thanks, {form.name.trim().split(" ")[0]} — tap below to join the WhatsApp community. We&apos;ll also
               reach out on {form.contact.trim()} shortly.
@@ -95,9 +95,9 @@ export function JoinCommunityDialog({ courseTitle, children }: JoinCommunityDial
               <span className="h-0.5 w-[18px] bg-primary" />
               {courseTitle}
             </span>
-            <DialogTitle className="mt-2.5">Join the community</DialogTitle>
+            <DialogTitle className="mt-2.5">Be part of the journey</DialogTitle>
             <DialogDescription>
-              A couple of details first, so we know who&apos;s joining — then you&apos;re straight through.
+              A few details first, so we know who is joining us, and you&apos;re straight through.
             </DialogDescription>
 
             <div className="mt-6 flex flex-col gap-[14px]">
@@ -138,12 +138,12 @@ export function JoinCommunityDialog({ courseTitle, children }: JoinCommunityDial
               </label>
 
               <label className="flex flex-col gap-[6px]">
-                <span className="text-[13px] font-bold text-ink">Why would you like to join?</span>
+                <span className="text-[13px] font-bold text-ink">What do you hope to learn?</span>
                 <textarea
                   value={form.message}
                   onChange={(e) => updateField("message", e.target.value)}
                   rows={3}
-                  placeholder="Tell us a little about what you're hoping to get from the community…"
+                  placeholder="Tell us a little about where you are and what you are hoping to study…"
                   className="resize-y rounded-xl border-[1.5px] border-border-strong bg-surface px-[15px] py-[11px] text-[14px] text-ink transition-colors focus:border-primary focus:shadow-[0_0_0_4px_rgba(17,130,163,0.16)] focus:outline-none"
                 />
               </label>
@@ -158,7 +158,7 @@ export function JoinCommunityDialog({ courseTitle, children }: JoinCommunityDial
                     : "cursor-not-allowed bg-surface-2 text-muted"
                 }`}
               >
-                {isSubmitting ? "Submitting…" : "Join community"}
+                {isSubmitting ? "Submitting…" : "Be part of the journey"}
               </button>
               {submitError && (
                 <p className="text-center text-sm font-semibold text-red-600">

@@ -31,7 +31,7 @@ export function FacultyHero({ faculty, hasPaidCourse, primaryCourse }: FacultyHe
             Home
           </Link>
           <span>/</span>
-          <Link href="/#faculty" className="transition-colors hover:text-primary">
+          <Link href="/#teachers" className="transition-colors hover:text-primary">
             Faculty
           </Link>
           <span>/</span>
@@ -39,16 +39,16 @@ export function FacultyHero({ faculty, hasPaidCourse, primaryCourse }: FacultyHe
         </div>
       </div>
 
-      <div className="relative mx-auto grid max-w-[1160px] grid-cols-1 items-start gap-9 px-7 pt-7 pb-16 sm:pb-20 md:grid-cols-[minmax(220px,300px)_minmax(0,1fr)] lg:gap-14">
+      <div className="relative mx-auto grid max-w-[1160px] grid-cols-1 items-start gap-9 px-7 pt-8 pb-16 sm:pb-20 md:grid-cols-[minmax(220px,300px)_minmax(0,1fr)] lg:gap-14">
         <Reveal className="flex flex-col gap-4">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[26px] shadow-[var(--shadow-lg)]">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-[var(--shadow-md)]">
             <CoverPlaceholder accent={faculty.accent} className="h-full" />
           </div>
           <div className="flex flex-wrap gap-2">
             {faculty.credentials.map((credential) => (
               <span
                 key={credential}
-                className="rounded-full border border-border bg-surface px-3.5 py-[7px] text-xs font-bold text-text"
+                className="rounded-full border border-border bg-surface px-3.5 py-[7px] text-xs font-medium text-text"
               >
                 {credential}
               </span>
@@ -58,18 +58,17 @@ export function FacultyHero({ faculty, hasPaidCourse, primaryCourse }: FacultyHe
 
         <div>
           <Reveal delay={90}>
-            <span className="inline-flex items-center gap-2.5 text-[12.5px] font-bold tracking-[0.2em] text-primary uppercase">
-              <span className="h-0.5 w-[22px] bg-primary" />
+            <span className="block font-mono text-xs tracking-[0.1em] text-primary uppercase">
               {faculty.department}
             </span>
-            <h1 className="mt-3.5 font-display text-[clamp(32px,4.4vw,56px)] leading-[0.98] tracking-[-0.01em] text-ink uppercase">
+            <h1 className="mt-4 text-[clamp(38px,5.2vw,68px)] leading-[1.02] font-semibold tracking-[-0.045em] text-balance text-ink">
               {faculty.name}
             </h1>
-            <p className="mt-2 text-[17px] font-bold text-primary-2">{faculty.role}</p>
+            <p className="mt-3 text-[18px] font-medium text-primary">{faculty.role}</p>
           </Reveal>
 
           <Reveal delay={150}>
-            <p className="mt-5 max-w-[62ch] text-[15.5px] text-text">{faculty.bio}</p>
+            <p className="mt-5 max-w-[58ch] text-[17px] leading-[1.65] text-text">{faculty.bio}</p>
           </Reveal>
 
           <Reveal delay={270}>

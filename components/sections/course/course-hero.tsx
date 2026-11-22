@@ -7,7 +7,6 @@ import { AvatarPlaceholder } from "@/components/ui/avatar-placeholder";
 import { DiamondMark } from "@/components/ui/diamond-mark";
 import { JoinCommunityDialog } from "@/components/community/join-community-dialog";
 import { getBookingHref, getCourseCopy, getCourseCounts } from "@/lib/course-copy";
-import { accentGradientVars } from "@/lib/accent";
 
 interface CourseHeroProps {
   course: CourseDetail;
@@ -16,8 +15,7 @@ interface CourseHeroProps {
 export function CourseHero({ course }: CourseHeroProps) {
   const copy = getCourseCopy(course.type);
   const { moduleCountLine } = getCourseCounts(course);
-  const [gradientFrom, gradientTo] = accentGradientVars[course.accent];
-
+  
   return (
     <section className="relative overflow-hidden">
       <div
@@ -42,27 +40,27 @@ export function CourseHero({ course }: CourseHeroProps) {
         </div>
       </div>
 
-      <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-10 px-7 pt-6 pb-16 lg:grid-cols-2 lg:gap-16 lg:pb-[68px]">
+      <div className="relative mx-auto grid max-w-[1240px] grid-cols-1 items-start gap-10 px-7 pt-8 pb-16 lg:grid-cols-2 lg:gap-16 lg:pb-[68px]">
         <div>
           <Reveal>
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3.5 py-1.5 text-xs font-bold text-primary">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3.5 py-1.5 font-mono text-[11.5px] tracking-[0.06em] text-primary">
                 {course.category}
               </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-gold px-3.5 py-1.5 text-xs font-bold text-[#2b2a26]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3.5 py-1.5 font-mono text-[11.5px] tracking-[0.06em] text-ink">
                 {copy.badgeLabel}
               </span>
             </div>
           </Reveal>
 
           <Reveal delay={90}>
-            <h1 className="mt-[18px] text-[clamp(32px,4.6vw,58px)] leading-[0.98] font-display tracking-[-0.015em] text-ink uppercase text-balance">
+            <h1 className="mt-5 text-[clamp(36px,5vw,66px)] leading-[1.02] font-semibold tracking-[-0.045em] text-balance text-ink">
               {course.title}
             </h1>
           </Reveal>
 
           <Reveal delay={150}>
-            <p className="mt-[18px] max-w-[46ch] text-[clamp(15.5px,1.4vw,17.5px)] text-text">
+            <p className="mt-5 max-w-[46ch] text-[clamp(16px,1.4vw,18px)] leading-[1.6] text-text">
               {course.subtitle}
             </p>
           </Reveal>
@@ -108,12 +106,19 @@ export function CourseHero({ course }: CourseHeroProps) {
         </div>
 
         <Reveal delay={220} className="relative">
-          <div className="overflow-hidden rounded-[26px] border border-border bg-surface shadow-[var(--shadow-lg)]">
+          <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-[var(--shadow-md)]">
             <div
               className="relative flex min-h-[220px] flex-col justify-center overflow-hidden px-7 py-8"
-              style={{ background: `linear-gradient(155deg, ${gradientFrom} 0%, ${gradientTo} 100%)` }}
+              style={{ background: "#0E2A47" }}
             >
-              <div className="bg-pattern pointer-events-none absolute inset-0 opacity-40" />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -top-[30%] -right-[20%] aspect-square w-[80%] rounded-full [mask-image:radial-gradient(circle,#000_30%,transparent_70%)]"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(45deg,rgba(255,255,255,.07) 0 1px,transparent 1px 40px),repeating-linear-gradient(-45deg,rgba(255,255,255,.07) 0 1px,transparent 1px 40px)",
+                }}
+              />
               <span
                 aria-hidden="true"
                 className="pointer-events-none absolute -top-4 left-5 font-serif text-[92px] leading-none text-white/15"
@@ -124,23 +129,23 @@ export function CourseHero({ course }: CourseHeroProps) {
               <p className="relative mt-4 max-w-[36ch] font-serif text-[clamp(17px,1.7vw,21px)] leading-[1.5] text-white italic">
                 &ldquo;{course.heroQuote}&rdquo;
               </p>
-              <span className="relative mt-4 text-[11.5px] font-semibold tracking-[0.06em] text-white/75 uppercase">
+              <span className="relative mt-4 font-mono text-[11px] tracking-[0.1em] text-[#C9A24A] uppercase">
                 {course.heroQuoteSource}
               </span>
             </div>
             <div className="flex flex-col gap-3.5 p-6">
-              <span className="text-[13px] font-bold text-ink">This course includes</span>
+              <span className="font-mono text-[11px] tracking-[0.1em] text-muted">THIS COURSE INCLUDES</span>
               <div className="grid grid-cols-2 gap-3">
                 {[moduleCountLine, course.durationLine, course.formatLine ?? copy.formatLine, copy.certLine].map((item) => (
                   <div key={item} className="flex items-center gap-2">
-                    <span className="h-2 w-2 rotate-45 bg-primary" />
+                    <span className="h-1.5 w-1.5 rotate-45 bg-primary" />
                     <span className="text-[13px] text-text">{item}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
-          <div className="absolute -right-3 -bottom-4 flex items-center gap-2.5 rounded-[14px] border border-border bg-surface px-4 py-3 shadow-[var(--shadow-md)]">
+          <div className="absolute -right-3 -bottom-4 flex items-center gap-2.5 rounded-xl border border-border bg-surface px-4 py-3 shadow-[var(--shadow-md)]">
             <span className="relative flex h-2.5 w-2.5">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green opacity-75" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green shadow-[0_0_0_4px_rgba(62,158,84,0.24)]" />
@@ -158,22 +163,22 @@ export function CourseHero({ course }: CourseHeroProps) {
           }}
         >
           <div>
-            <div className="font-display text-[22px] text-ink">{course.statStudents}</div>
+            <div className="text-[26px] leading-none font-semibold tracking-[-0.04em] text-ink">{course.statStudents}</div>
             <div className="text-xs text-muted">students taught</div>
           </div>
           <div>
-            <div className="font-display text-[22px] text-ink">{course.rating}★</div>
+            <div className="text-[26px] leading-none font-semibold tracking-[-0.04em] text-ink">{course.rating}★</div>
             <div className="text-xs text-muted">average rating</div>
           </div>
           {course.statCountries && (
             <div>
-              <div className="font-display text-[22px] text-ink">{course.statCountries}</div>
+              <div className="text-[26px] leading-none font-semibold tracking-[-0.04em] text-ink">{course.statCountries}</div>
               <div className="text-xs text-muted">countries reached</div>
             </div>
           )}
           {course.statCompletion && (
             <div>
-              <div className="font-display text-[22px] text-ink">{course.statCompletion}</div>
+              <div className="text-[26px] leading-none font-semibold tracking-[-0.04em] text-ink">{course.statCompletion}</div>
               <div className="text-xs text-muted">finish what they start</div>
             </div>
           )}

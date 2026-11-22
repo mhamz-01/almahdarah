@@ -1,12 +1,10 @@
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { V2Page } from "@/components/home/v2-page";
 import { SkeletonBlock, SkeletonCircle, SkeletonLine } from "@/components/ui/skeleton";
 
 export default function ReviewsLoading() {
   return (
-    <>
-      <Header />
-      <main className="bg-bg">
+    <V2Page>
+      <div className="bg-bg">
         <div className="mx-auto max-w-[1160px] px-7 pt-12 pb-9 sm:pt-16 lg:pt-[68px]">
           <div className="max-w-[560px] space-y-4">
             <SkeletonLine className="w-44" />
@@ -39,8 +37,7 @@ export default function ReviewsLoading() {
             ))}
           </div>
         </div>
-      </main>
-      <Footer />
-    </>
+      </div>
+    </V2Page>
   );
 }

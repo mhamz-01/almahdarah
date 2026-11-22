@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { QuoteCard } from "@/components/quotes/quote-card";
 import { QuoteModalContent } from "@/components/quotes/quote-modal-content";
@@ -186,11 +186,11 @@ export function WallOfQuotes({ quotes, loadError }: WallOfQuotesProps) {
         >
           &ldquo;
         </span>
-        <div className="relative mx-auto max-w-[760px] px-6 pt-14 pb-8 text-center sm:pt-20 sm:pb-11">
-          <span className="font-mono text-[11px] tracking-[0.28em] text-muted uppercase">
-            From the majlis to the page
+        <div className="relative mx-auto max-w-[760px] px-6 pt-[clamp(56px,9vw,104px)] pb-8 text-center sm:pb-11">
+          <span className="font-mono text-xs tracking-[0.1em] text-primary">
+            FROM THE MAJLIS TO THE PAGE
           </span>
-          <h1 className="mx-auto mt-[18px] font-display text-[clamp(36px,5.4vw,64px)] leading-[0.96] tracking-[-0.01em] text-ink uppercase">
+          <h1 className="mx-auto mt-5 text-[clamp(40px,6vw,80px)] leading-[1] font-semibold tracking-[-0.045em] text-ink">
             Wall of Quotes
           </h1>
           <p className="mx-auto mt-5 max-w-[52ch] font-serif text-[clamp(17px,1.8vw,20px)] leading-[1.5] text-text italic">
@@ -208,13 +208,13 @@ export function WallOfQuotes({ quotes, loadError }: WallOfQuotesProps) {
       {quotes.length > 0 && (
         <>
           {/* TOPIC FILTER */}
-          <div className="sticky top-[69px] z-[60] border-t border-b border-border bg-bg/92 backdrop-blur-md">
+          <div className="sticky top-[80px] z-[60] border-t border-b border-border bg-bg/92 backdrop-blur-md">
             <div className="no-scrollbar mx-auto flex max-w-[1100px] flex-nowrap items-baseline justify-start overflow-x-auto px-6 py-3.5 sm:flex-wrap sm:justify-center sm:overflow-visible">
               <button
                 type="button"
                 onClick={() => selectTopic("all")}
                 className={`shrink-0 border-b-2 px-4 py-2 text-[13.5px] whitespace-nowrap transition-colors ${
-                  topic === "all" ? "font-bold text-ink" : "font-medium text-muted"
+                  topic === "all" ? "font-semibold text-ink" : "font-medium text-muted"
                 }`}
                 style={{ borderBottomColor: topic === "all" ? "var(--ink)" : "transparent" }}
               >
@@ -226,7 +226,7 @@ export function WallOfQuotes({ quotes, loadError }: WallOfQuotesProps) {
                   type="button"
                   onClick={() => selectTopic(t)}
                   className={`shrink-0 border-l border-b-2 border-l-border px-4 py-2 text-[13.5px] whitespace-nowrap transition-colors ${
-                    topic === t ? "font-bold text-ink" : "font-medium text-muted"
+                    topic === t ? "font-semibold text-ink" : "font-medium text-muted"
                   }`}
                   style={{ borderBottomColor: topic === t ? colorFor(t) : "transparent" }}
                 >
@@ -311,7 +311,7 @@ export function WallOfQuotes({ quotes, loadError }: WallOfQuotesProps) {
                       aria-current={n === currentPage ? "page" : undefined}
                       className={`flex h-9 min-w-9 items-center justify-center rounded-full px-2.5 font-mono text-[12.5px] font-bold transition-colors ${
                         n === currentPage
-                          ? "bg-primary text-white"
+                          ? "bg-primary text-primary-ink"
                           : "text-muted hover:bg-surface-2 hover:text-ink"
                       }`}
                     >
@@ -334,24 +334,33 @@ export function WallOfQuotes({ quotes, loadError }: WallOfQuotesProps) {
         </>
       )}
 
-      {/* CTA */}
-      <section
-        className="relative overflow-hidden"
-        style={{ background: "linear-gradient(152deg, var(--primary) 0%, var(--primary-2) 100%)" }}
-      >
-        <div className="relative mx-auto max-w-[800px] px-6 py-[clamp(50px,7vw,80px)] text-center text-white">
-          <h2 className="mx-auto max-w-[20ch] font-display text-[clamp(26px,3.6vw,42px)] leading-[1] tracking-[-0.01em] uppercase">
-            Go deeper with a teacher
+      {/* GO DEEPER */}
+      <section className="relative isolate overflow-hidden bg-[#0E2A47]">
+        <div
+          aria-hidden
+          className="absolute -top-[40%] -right-[10%] aspect-square w-[70%] rounded-full [mask-image:radial-gradient(circle,#000_30%,transparent_70%)]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(45deg,rgba(255,255,255,.06) 0 1px,transparent 1px 48px),repeating-linear-gradient(-45deg,rgba(255,255,255,.06) 0 1px,transparent 1px 48px)",
+          }}
+        />
+        <div className="relative mx-auto max-w-[1200px] px-7 py-[clamp(72px,10vw,128px)]">
+          <span className="block font-mono text-xs tracking-[0.1em] text-[#C9A24A]">
+            BEYOND THE PAGE
+          </span>
+          <h2 className="mt-5 max-w-[16ch] text-[clamp(34px,5vw,64px)] leading-[1] font-semibold tracking-[-0.045em] text-white">
+            Go deeper with a teacher.
           </h2>
-          <p className="mx-auto mt-4 max-w-[48ch] text-[15px] opacity-[0.94]">
-            These words are a beginning. Book a free demo and study them properly — with context,
+          <p className="mt-5 max-w-[46ch] text-[17px] leading-[1.6] text-[#B9C4CF]">
+            These words are a beginning. Book a free class and study them properly: with context,
             chain, and a teacher who can answer your questions.
           </p>
-          <div className="mt-[26px]">
-            <Button href="/book-a-demo" variant="gold" size="lg" withArrow>
-              Book a free demo
-            </Button>
-          </div>
+          <Link
+            href="/book-a-demo"
+            className="mt-8 inline-flex h-[54px] items-center gap-3 rounded-full bg-[#3BA6C6] px-7 text-[16px] font-semibold text-[#0B1622] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_-14px_rgba(59,166,198,.8)]"
+          >
+            Book a free class <span aria-hidden>→</span>
+          </Link>
         </div>
       </section>
 
