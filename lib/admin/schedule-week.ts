@@ -24,6 +24,8 @@ export interface AdminClassDay {
   /** Course the recording comes from (set on the timetable row, or guessed). */
   courseId: number | null;
   recording: { lessonId: number; title: string; position: number; source: "auto" | "admin" } | null;
+  /** The admin said this class has no recording. */
+  noRecording: boolean;
 }
 
 export interface AdminWeekInput {
@@ -33,6 +35,7 @@ export interface AdminWeekInput {
   recordings: ClassRecordingRow[];
   lessons: Map<number, Pick<CourseLessonRow, "id" | "title" | "position">>;
   presentByDate: Map<string, number>;
+  noRecordingDates?: Set<string>;
   studentJoinDates: string[];
   todayIso: string;
 }
@@ -73,6 +76,7 @@ export function buildAdminDays(input: AdminWeekInput, fromMonday: string, weeks:
         studentCount: input.studentJoinDates.filter((d) => d <= date).length,
         courseId: slot ? courseIdForSlot(slot, input.courses) : null,
         recording: rec ? { lessonId: rec.lesson_id, title: lesson?.title ?? "Lesson", position: lesson?.position ?? 0, source: rec.source } : null,
+        noRecording: !rec && (input.noRecordingDates?.has(date) ?? false),
       });
     }
   }

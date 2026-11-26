@@ -26,6 +26,8 @@ export interface ClassCalendar {
   cancellations: ClassCancellationRow[];
   recordings: ClassRecordingRow[];
   lessons: Map<number, RecordingLesson>;
+  /** Dates the admin marked "no recording" (automatic linking skips them). */
+  noRecordingDates: Set<string>;
 }
 
 /**
@@ -52,13 +54,16 @@ export async function loadClassCalendar(supabase: Admin, sinceIso: string, now =
     course_id: s.course_id ?? null,
   }));
   const cancellations = (cancelRes.data as ClassCancellationRow[] | null) ?? [];
-  const stored = (recRes.data as ClassRecordingRow[] | null) ?? [];
+  // A row with no lesson is the admin saying "no recording": it blocks automatic
+  // linking for that date but isn't a recording itself.
+  const storedRaw = (recRes.data as (Omit<ClassRecordingRow, "lesson_id"> & { lesson_id: number | null })[] | null) ?? [];
+  const stored = storedRaw.filter((r): r is ClassRecordingRow => r.lesson_id !== null);
 
   const { thisWeek: latestThisWeek, older } = resolveRecordingLinks({
     schedule,
     courses: (coursesRes.data as Pick<CourseRow, "id" | "title">[] | null) ?? [],
     cancelledDates: new Set(cancellations.map((c) => c.class_date)),
-    existing: stored,
+    existing: storedRaw.map((r) => ({ class_date: r.class_date, lesson_id: r.lesson_id ?? 0, source: r.source })),
     lessons: (recentLessonsRes.data as { id: number; course_id: number; position: number; created_at: string }[] | null) ?? [],
     todayIso,
   });
@@ -91,7 +96,8 @@ export async function loadClassCalendar(supabase: Admin, sinceIso: string, now =
     ((lessonsRes.data as RecordingLesson[] | null) ?? []).map((l) => [l.id, l]),
   );
 
-  return { schedule, cancellations, recordings, lessons };
+  const noRecordingDates = new Set(storedRaw.filter((r) => r.lesson_id === null).map((r) => r.class_date));
+  return { schedule, cancellations, recordings, lessons, noRecordingDates };
 }
 
 /** Progress rows for the calendar's recordings: one student, or many (admin, emails). */

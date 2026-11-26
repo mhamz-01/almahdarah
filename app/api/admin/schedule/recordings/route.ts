@@ -21,8 +21,28 @@ export async function PUT(request: Request) {
   const supabase = createSupabaseAdminClient();
 
   if (body.lessonId === null) {
-    const { error } = await supabase.from("class_recordings").delete().eq("class_date", date);
-    if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    // Stored as an admin row with no lesson, so automatic linking leaves this date alone
+    // (deleting the row would just let the same video be linked again).
+    const { data: rows } = await supabase.from("class_schedule").select("*");
+    const slot = slotOn(((rows as ClassScheduleRow[] | null) ?? []).map((s) => ({ ...s, active_from: s.active_from ?? "2000-01-01" })), date);
+    const { error } = slot
+      ? await supabase
+          .from("class_recordings")
+          .upsert(
+            { class_date: date, schedule_id: slot.id, lesson_id: null, source: "admin", linked_at: new Date().toISOString() },
+            { onConflict: "class_date" },
+          )
+      : await supabase.from("class_recordings").delete().eq("class_date", date);
+    if (error) {
+      // Migration 0032 not run yet: lesson_id can't be empty, so fall back to removing the link.
+      const fallback = await supabase.from("class_recordings").delete().eq("class_date", date);
+      if (fallback.error) return NextResponse.json({ ok: false, error: fallback.error.message }, { status: 500 });
+      return NextResponse.json({
+        ok: true,
+        recording: null,
+        warning: "Removed, but it may be linked again automatically. Run migration 0032 so “No recording” sticks.",
+      });
+    }
     return NextResponse.json({ ok: true, recording: null });
   }
 

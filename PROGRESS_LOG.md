@@ -5,6 +5,16 @@ Feature details live in their own docs (see links).
 
 ---
 
+## 2026-11-26: Recordings without waiting for the sync, v2 theme on both portals
+
+- **Missed classes from earlier weeks showed "recording coming soon".** Pages only worked out the current week's recordings; older weeks waited for links saved by the nightly sync. The committed sync route never called `linkRecordings`, so nothing was saved. Pages now work out the last 14 days themselves with the same rules (`resolveRecordingLinks` in `lib/recordings-match.ts`, shared by the sync and `lib/class-calendar.ts`).
+- **"No recording" now sticks.** Before, it deleted the link and the same video was linked again on the next load or sync. It is now stored as an admin row with no lesson. **Run migration 0032 after 0031.** Until it runs, the API falls back to deleting and shows a warning.
+- Portals: skeleton `loading.tsx` per page instead of the full-screen logo loader. "Mark me present" switches instantly and the request runs in the background. New week path, Continue learning and Next badge cards on the student home.
+- v2 theme on the student sign-in and the whole admin area (`app/(admin)/layout.tsx`): new sidebar with a dark-mode switch, new sign-in page. The admin student panel now shows badges.
+- Tests: `npm run test:streak` (22). Typecheck and lint pass. Still uncommitted.
+
+---
+
 ## 2026-11-23: Flexible classes, per-date cancelling, catch-up streaks
 
 - **Streak target = classes actually held.** Timetable rows for that week, minus dates the admin cancelled. Days with no class (e.g. Friday) never count. Before, every Mon-Fri counted, which broke streaks after moving to 4 classes.

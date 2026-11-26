@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { AddStudentModal } from "@/components/admin/students/add-student-modal";
 import { EditStudentModal } from "@/components/admin/students/edit-student-modal";
-import { computeStudentStats } from "@/lib/students";
+import { computeStudentStats, MILESTONES } from "@/lib/students";
 import type { DayStatus, StudentRow, StudentWithLoginStatus } from "@/lib/types";
 
 interface StudentsAdminPanelProps {
@@ -40,11 +40,11 @@ function catchUpLabel(student: StudentWithLoginStatus): { text: string; classNam
   const open = student.catchUps.find((c) => c.state !== "done");
   if (open) {
     const day = open.day.slice(0, 3);
-    if (open.state === "waiting") return { text: `${day} · waiting for recording`, className: "text-[#8a6b12]" };
+    if (open.state === "waiting") return { text: `${day} · waiting for recording`, className: "text-gold-ink" };
     const pct = open.durationSeconds ? Math.min(99, Math.round((open.watchedSeconds / open.durationSeconds) * 100)) : null;
     return {
       text: open.watchedSeconds > 0 ? `${day} · ${pct !== null ? `${pct}% watched` : "watching"}` : `${day} · not started`,
-      className: "text-[#8a6b12]",
+      className: "text-gold-ink",
     };
   }
   if (student.catchUps.some((c) => c.state === "done")) return { text: "✓ Caught up", className: "text-green" };
@@ -54,7 +54,7 @@ function catchUpLabel(student: StudentWithLoginStatus): { text: string; classNam
 const CELL_CLASS: Record<DayStatus, string> = {
   present: "border-green bg-green",
   caught_up: "border-gold bg-gold",
-  catch_up: "border-dashed border-[#8a6b12] bg-transparent",
+  catch_up: "border-dashed border-gold-ink bg-transparent",
   absent: "border-red-600 bg-transparent",
   cancelled: "border-border bg-surface-2",
   no_class: "border-transparent bg-transparent",
@@ -336,7 +336,7 @@ Password: ${selected.password}`);
                     </td>
                     <td className={`px-4 py-3.5 font-bold ${streakColor}`}>
                       {student.streak} {student.streak === 1 ? "week" : "weeks"}
-                      {student.atRisk && <span className="ml-1.5 text-[11px] font-bold text-[#8a6b12]">at risk</span>}
+                      {student.atRisk && <span className="ml-1.5 text-[11px] font-bold text-gold-ink">at risk</span>}
                     </td>
                     <td className="px-4 py-3.5 text-text">
                       {student.targetThisWeek ? `${student.attendedThisWeek} / ${student.targetThisWeek}` : "—"}
@@ -402,6 +402,30 @@ Password: ${selected.password}`);
               </div>
               <div className="text-[11px] text-muted">classes since joining</div>
             </div>
+            <div className="rounded-xl border border-border bg-bg p-3.5">
+              <div className="text-[10.5px] font-bold tracking-[0.1em] text-muted uppercase">Badges</div>
+              <div className="mt-1.5 flex items-center gap-1" aria-label={`${selected.earnedMilestones.length} of ${MILESTONES.length} badges earned`}>
+                {MILESTONES.map((m) => {
+                  const got = selected.earnedMilestones.some((e) => e.weeks === m.weeks);
+                  return (
+                    <span
+                      key={m.weeks}
+                      title={`${m.name} · ${m.weeks} weeks${got ? " (earned)" : ""}`}
+                      className={`flex h-7 min-w-7 items-center justify-center rounded-full px-1 text-[10.5px] font-bold ${
+                        got ? "bg-gold/30 text-gold-ink" : "border border-dashed border-border-strong text-muted"
+                      }`}
+                    >
+                      {m.weeks}
+                    </span>
+                  );
+                })}
+              </div>
+              <div className="mt-1 text-[11px] text-muted">
+                {selected.nextMilestone
+                  ? `Next: ${selected.nextMilestone.name} in ${selected.nextMilestone.weeks - selected.streak} ${selected.nextMilestone.weeks - selected.streak === 1 ? "week" : "weeks"}`
+                  : "Every badge earned"}
+              </div>
+            </div>
           </div>
 
           <div className="mt-4">
@@ -422,9 +446,10 @@ Password: ${selected.password}`);
                 </div>
               ))}
             </div>
-            <div className="mt-3 flex gap-3.5 font-mono text-[10.5px] text-muted">
+            <div className="mt-3 flex flex-wrap gap-x-3.5 gap-y-1 font-mono text-[10.5px] text-muted">
               <span className="text-green">■ present</span>
-              <span className="text-[#8a6b12]">■ caught up</span>
+              <span className="text-gold-ink">■ caught up</span>
+              <span className="text-gold-ink">┆ catching up</span>
               <span className="text-red-600">□ missed</span>
               <span>▪ cancelled</span>
             </div>

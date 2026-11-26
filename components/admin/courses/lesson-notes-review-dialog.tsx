@@ -114,7 +114,7 @@ export function LessonNotesReviewDialog({
           </DialogDescription>
         </div>
 
-        <p className="mt-4 rounded-xl border border-gold/50 bg-gold/10 px-4 py-2.5 text-[12.5px] leading-[1.5] text-[#8a6b12]">
+        <p className="mt-4 rounded-xl border border-gold/50 bg-gold/10 px-4 py-2.5 text-[12.5px] leading-[1.5] text-gold-ink">
           AI-generated from the lecture audio. Check names, āyah and hadith references, and any rulings against
           the video before publishing.
         </p>

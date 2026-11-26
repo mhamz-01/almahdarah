@@ -247,7 +247,7 @@ export function ScheduleAdminPanel({
                       <td className="px-4 py-3.5 font-mono text-[12.5px] text-text">{slot.start_time}</td>
                       <td className="px-4 py-3.5 text-text">{slot.teacher}</td>
                       <td className="px-4 py-3.5 text-[12.5px] text-text">
-                        {course ?? <span className="font-semibold text-[#8a6b12]">Not set</span>}
+                        {course ?? <span className="font-semibold text-gold-ink">Not set</span>}
                         {course && !slot.course_id && <span className="text-muted"> (auto)</span>}
                       </td>
                     </tr>

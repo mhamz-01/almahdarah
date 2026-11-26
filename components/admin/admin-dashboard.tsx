@@ -278,7 +278,7 @@ export function AdminDashboard({ leads, leadsError, reviews: initialReviews, rev
                       </span>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11.5px] font-bold ${
-                          review.approved ? "bg-green/15 text-green" : "bg-gold/25 text-[#8a6b12]"
+                          review.approved ? "bg-green/15 text-green" : "bg-gold/25 text-gold-ink"
                         }`}
                       >
                         {review.approved ? "Approved" : "Pending"}

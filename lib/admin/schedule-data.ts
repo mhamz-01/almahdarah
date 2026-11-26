@@ -64,6 +64,7 @@ export async function loadAdminSchedule(supabase: Admin, now: Date, weeksBack = 
       recordings: calendar.recordings,
       lessons: calendar.lessons,
       presentByDate,
+      noRecordingDates: calendar.noRecordingDates,
       studentJoinDates: ((studentsRes.data as { created_at: string }[] | null) ?? []).map((s) => s.created_at.slice(0, 10)),
       todayIso,
     },

@@ -83,15 +83,20 @@ export function WeekStrip({ initialDays, mondays, currentMonday, todayIso, lesso
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ date: d.date, lessonId }),
       });
-      const json = (await res.json()) as { ok: boolean; error?: string };
+      const json = (await res.json()) as { ok: boolean; error?: string; warning?: string };
       if (!res.ok || !json.ok) throw new Error(json.error ?? "Request failed");
+      if (json.warning) setError(json.warning);
       const options = d.courseId ? (lessonsByCourse[d.courseId] ?? []) : [];
       const lesson = options.find((l) => l.id === lessonId);
       // A lesson can belong to one class only: clear it from any other card.
       setDays((prev) =>
         prev.map((x) => {
           if (x.date === d.date) {
-            return { ...x, recording: lesson ? { lessonId: lesson.id, title: lesson.title, position: lesson.position, source: "admin" } : null };
+            return {
+              ...x,
+              recording: lesson ? { lessonId: lesson.id, title: lesson.title, position: lesson.position, source: "admin" } : null,
+              noRecording: !lesson && !json.warning,
+            };
           }
           return x.recording && x.recording.lessonId === lessonId ? { ...x, recording: null } : x;
         }),
@@ -226,12 +231,14 @@ export function WeekStrip({ initialDays, mondays, currentMonday, todayIso, lesso
                   <p className="text-[12px] text-text">
                     {d.presentCount} of {d.studentCount} present
                   </p>
-                  <div className={`mt-auto flex flex-col gap-1.5 rounded-[10px] px-2.5 py-2 ${d.recording ? "bg-green/10" : "bg-gold/15"}`}>
-                    <span className={`text-[12px] font-bold ${d.recording ? "text-green" : "text-[#8a6b12]"}`}>
-                      {d.recording ? "✓ Recording linked" : "Waiting for recording"}
+                  <div className={`mt-auto flex flex-col gap-1.5 rounded-[10px] px-2.5 py-2 ${d.recording ? "bg-green/10" : d.noRecording ? "bg-surface-2" : "bg-gold/15"}`}>
+                    <span className={`text-[12px] font-bold ${d.recording ? "text-green" : d.noRecording ? "text-muted" : "text-gold-ink"}`}>
+                      {d.recording ? "✓ Recording linked" : d.noRecording ? "No recording" : "Waiting for recording"}
                     </span>
                     {d.recording ? (
                       <span className="text-[11.5px] text-text">{d.recording.title}</span>
+                    ) : d.noRecording ? (
+                      <span className="text-[11.5px] leading-[1.4] text-text">You marked this class as having no recording, so nothing links automatically.</span>
                     ) : (
                       <span className="text-[11.5px] leading-[1.4] text-text">
                         {d.courseId ? "Linked automatically when it’s uploaded." : "Set a course on this class so recordings link automatically."}

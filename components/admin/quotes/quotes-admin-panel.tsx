@@ -262,7 +262,7 @@ export function QuotesAdminPanel({ quotes: initialQuotes, loadError }: QuotesAdm
                   </span>
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                      quote.published ? "bg-green/15 text-green" : "bg-gold/25 text-[#8a6b12]"
+                      quote.published ? "bg-green/15 text-green" : "bg-gold/25 text-gold-ink"
                     }`}
                   >
                     {quote.published ? "Published" : "Draft"}

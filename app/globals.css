@@ -703,12 +703,13 @@ html.planner-dragging body {
 }
 
 /* ---------------------------------------------------------------------------
-   Student pages on v2 (app/(student)/layout.tsx). The shared utilities point at
+   Student and admin pages on v2 (app/(student)/layout.tsx, app/(admin)/layout.tsx). The shared utilities point at
    the original fonts (Poppins, JetBrains Mono); inside the student area they
    point at the v2 fonts instead. body carries the same attributes while a
    student page is open, so dialogs portalled onto it match.
 --------------------------------------------------------------------------- */
-[data-ds="v2"][data-portal="student"] {
+[data-ds="v2"][data-portal="student"],
+[data-ds="v2"][data-portal="admin"] {
   --font-poppins: var(--font-geist);
   --font-jetbrains-mono: var(--font-geist-mono);
   --font-archivo-black: var(--font-geist);
@@ -716,10 +717,13 @@ html.planner-dragging body {
   --gold-ink: #8a6a1f;
 }
 [data-theme="dark"] [data-ds="v2"][data-portal="student"],
-[data-theme="dark"][data-ds="v2"][data-portal="student"] {
+[data-theme="dark"][data-ds="v2"][data-portal="student"],
+[data-theme="dark"] [data-ds="v2"][data-portal="admin"],
+[data-theme="dark"][data-ds="v2"][data-portal="admin"] {
   --gold-ink: #e3c27a;
 }
-[data-ds="v2"][data-portal="student"] h1.font-display {
+[data-ds="v2"][data-portal="student"] h1.font-display,
+[data-ds="v2"][data-portal="admin"] :is(h1, h2).font-display {
   font-weight: 600;
   letter-spacing: -0.035em;
 }

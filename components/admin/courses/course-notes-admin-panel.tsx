@@ -38,10 +38,10 @@ function badgeFor(summary: LessonNoteSummary | undefined, run: Run | null) {
   if (summary.status !== "ready") {
     return {
       label: `Interrupted · ${summary.segmentsDone}/${summary.segmentsTotal} clips`,
-      className: "bg-gold/25 text-[#8a6b12]",
+      className: "bg-gold/25 text-gold-ink",
     };
   }
-  if (!summary.isPublished) return { label: "Draft · not published", className: "bg-gold/25 text-[#8a6b12]" };
+  if (!summary.isPublished) return { label: "Draft · not published", className: "bg-gold/25 text-gold-ink" };
   if (summary.hasUnpublishedChanges) return { label: "Published · edits pending", className: "bg-green/15 text-green" };
   return { label: "Published", className: "bg-green/15 text-green" };
 }
