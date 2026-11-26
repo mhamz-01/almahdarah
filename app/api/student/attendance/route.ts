@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getStudentSession } from "@/lib/get-student-session";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
-import type { Weekday } from "@/lib/types";
+import { slotOn } from "@/lib/students";
+import type { ClassScheduleRow, Weekday } from "@/lib/types";
 
 const WEEKDAY_BY_UTC_INDEX: (Weekday | null)[] = [null, "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", null];
 const MAX_BACKFILL_DAYS = 35; // matches the 5 weeks shown in the portal
@@ -49,8 +50,12 @@ export async function POST(req: Request) {
   if (!r.ok) return NextResponse.json({ ok: false, error: r.error }, { status: 400 });
 
   const supabase = createSupabaseAdminClient();
-  const { data: slot } = await supabase.from("class_schedule").select("status").eq("day", r.day).maybeSingle();
-  if (!slot || slot.status !== "scheduled") {
+  const [{ data: slots }, { data: cancelled }] = await Promise.all([
+    supabase.from("class_schedule").select("day, active_from").eq("day", r.day),
+    supabase.from("class_cancellations").select("class_date").eq("class_date", r.classDate).maybeSingle(),
+  ]);
+  const slot = slotOn(((slots ?? []) as Pick<ClassScheduleRow, "day" | "active_from">[]).map((s) => ({ ...s, active_from: s.active_from ?? "2000-01-01" })), r.classDate);
+  if (!slot || cancelled) {
     return NextResponse.json({ ok: false, error: "There was no class running that day" }, { status: 400 });
   }
 

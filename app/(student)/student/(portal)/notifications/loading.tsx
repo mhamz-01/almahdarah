@@ -1,0 +1,5 @@
+import { StudentNotificationsSkeleton } from "@/components/skeletons/portal-skeletons";
+
+export default function Loading() {
+  return <StudentNotificationsSkeleton />;
+}

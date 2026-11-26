@@ -8,7 +8,7 @@ import { LogoLoader } from "@/components/ui/logo-loader";
 const OPEN_PORTAL_FALLBACK_MS = 15000;
 
 const inputClasses =
-  "h-[50px] w-full rounded-[3px] border border-border-strong bg-surface px-4 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none";
+  "h-[50px] w-full rounded-[14px] border border-border-strong bg-surface px-4 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none";
 
 export function StudentLoginForm() {
   const router = useRouter();

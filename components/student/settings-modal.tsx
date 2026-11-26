@@ -40,7 +40,7 @@ function initialsFor(name: string) {
 
 function Field({ label, value }: { label: string; value: string | null }) {
   return (
-    <div className="rounded-[3px] border border-border bg-bg px-4 py-3.5">
+    <div className="rounded-[14px] border border-border bg-bg px-4 py-3.5">
       <div className="text-[11px] font-bold tracking-[0.12em] text-muted uppercase">{label}</div>
       <div className="mt-1.5 text-[14.5px] leading-[1.6] break-words whitespace-pre-wrap text-ink">{value || "—"}</div>
     </div>
@@ -101,7 +101,7 @@ function AppearanceSection() {
             role="radio"
             aria-checked={current === t.value}
             onClick={() => setTheme(t.value)}
-            className={`rounded-[3px] border-2 px-4 py-4 text-left transition-colors ${
+            className={`rounded-[14px] border-2 px-4 py-4 text-left transition-colors ${
               current === t.value ? "border-primary bg-primary/[0.06]" : "border-border hover:border-border-strong"
             }`}
           >
@@ -148,7 +148,7 @@ function FeedbackSection() {
 
   if (sent) {
     return (
-      <div className="rounded-[3px] border border-border-strong bg-mint p-6">
+      <div className="rounded-[14px] border border-border-strong bg-mint p-6">
         <div className="font-display text-[18px] tracking-[0.02em] text-ink uppercase">Thank you</div>
         <p className="mt-3 text-[14.5px] leading-[1.65] text-text">Your message has been sent to your teachers. Jazakallahu khayran.</p>
         <button
@@ -191,7 +191,7 @@ function FeedbackSection() {
           maxLength={MESSAGE_MAX_LENGTH}
           rows={9}
           placeholder="Describe the issue or your suggestion…"
-          className="w-full resize-none rounded-[3px] border border-border-strong bg-surface p-4 text-[14.5px] leading-[1.6] text-ink transition-colors focus:border-primary focus:outline-none"
+          className="w-full resize-none rounded-[14px] border border-border-strong bg-surface p-4 text-[14.5px] leading-[1.6] text-ink transition-colors focus:border-primary focus:outline-none"
         />
         <span className="mt-1 block text-right font-mono text-[11px] text-muted">
           {message.length}/{MESSAGE_MAX_LENGTH}
@@ -245,7 +245,7 @@ export function SettingsModal({
               type="button"
               onClick={() => onSectionChange(s.key)}
               aria-current={section === s.key}
-              className={`rounded-[3px] border px-3.5 py-2.5 text-left text-[13.5px] transition-colors ${
+              className={`rounded-[14px] border px-3.5 py-2.5 text-left text-[13.5px] transition-colors ${
                 section === s.key ? "border-border-strong bg-surface font-bold text-ink" : "border-transparent font-medium text-text hover:border-border"
               }`}
             >

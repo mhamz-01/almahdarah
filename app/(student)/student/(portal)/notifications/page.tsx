@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 import { getStudentSession } from "@/lib/get-student-session";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
-import { computeStudentStats } from "@/lib/students";
+import { loadStudentStreakContext } from "@/lib/class-calendar";
+import { addDaysIso, computeStudentStats, slotOn } from "@/lib/students";
 import { MarkAllReadButton } from "@/components/student/mark-all-read-button";
 import type {
   AttendanceRow,
-  ClassScheduleRow,
   CourseLessonRow,
   CourseRow,
   LessonNoteRow,
@@ -30,12 +30,6 @@ interface Notice {
   unread: boolean;
 }
 
-function addDaysIso(iso: string, days: number): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
 function relativeDayLabel(time: Date, now: Date): string {
   const diffMs = now.getTime() - time.getTime();
   const diffMinutes = Math.floor(diffMs / 60000);
@@ -57,10 +51,9 @@ export default async function StudentNotificationsPage() {
   const supabase = createSupabaseAdminClient();
   const newNotesSince = new Date();
   newNotesSince.setUTCDate(newNotesSince.getUTCDate() - NEW_NOTES_DAYS);
-  const [studentRes, attendanceRes, scheduleRes, notesRes, lectureNotesRes, newLessonsRes] = await Promise.all([
+  const [studentRes, attendanceRes, notesRes, lectureNotesRes, newLessonsRes] = await Promise.all([
     supabase.from("students").select("*").eq("id", session.studentId).maybeSingle(),
-    supabase.from("attendance").select("*").eq("student_id", session.studentId).order("class_date", { ascending: false }).limit(60),
-    supabase.from("class_schedule").select("*").order("sort_order", { ascending: true }),
+    supabase.from("attendance").select("*").eq("student_id", session.studentId).order("class_date", { ascending: false }).limit(1000),
     supabase.from("student_notes").select("*").eq("student_id", session.studentId).order("created_at", { ascending: false }).limit(50),
     supabase
       .from("lesson_notes")
@@ -80,13 +73,15 @@ export default async function StudentNotificationsPage() {
   if (!student) redirect("/student/login");
 
   const attendance = (attendanceRes.data as AttendanceRow[] | null) ?? [];
-  const schedule = (scheduleRes.data as ClassScheduleRow[] | null) ?? [];
   const notes = (notesRes.data as StudentNoteRow[] | null) ?? [];
   const lectureNotes = (lectureNotesRes.data as Pick<LessonNoteRow, "lesson_id" | "published_at">[] | null) ?? [];
   const newLessons =
     (newLessonsRes.data as Pick<CourseLessonRow, "id" | "course_id" | "position" | "title" | "created_at">[] | null) ?? [];
   const now = new Date();
-  const stats = computeStudentStats(student, attendance, now);
+  const todayIso = now.toISOString().slice(0, 10);
+  const { calendar, ctx } = await loadStudentStreakContext(supabase, student.id, student.created_at);
+  const schedule = calendar.schedule;
+  const stats = computeStudentStats(student, attendance, now, ctx);
 
   // Lesson + course titles for recently published lecture notes.
   const noteLessonsRes = lectureNotes.length
@@ -154,54 +149,77 @@ export default async function StudentNotificationsPage() {
     });
   }
 
-  for (const slot of schedule) {
-    if (slot.status === "scheduled") continue;
-    const kind = slot.status === "cancelled" ? "Class cancelled" : "Schedule change";
-    const title =
-      slot.status === "cancelled"
-        ? `${slot.day}’s ${slot.subject} is cancelled`
-        : `${slot.subject} moves to ${slot.start_time}`;
-    const body =
-      slot.note ||
-      (slot.status === "cancelled"
-        ? "No session this week. Your streak is not affected by a cancelled class."
-        : `Note the new time for this week’s ${slot.day} session.`);
+  // Cancelled classes from the last week and the next two weeks.
+  for (const c of calendar.cancellations) {
+    if (c.class_date < addDaysIso(todayIso, -7) || c.class_date > addDaysIso(todayIso, 14)) continue;
+    const slot = slotOn(schedule, c.class_date);
+    if (!slot) continue;
+    const when = new Date(`${c.class_date}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short", timeZone: "UTC" });
     notices.push({
-      key: `schedule-${slot.id}`,
-      kind,
-      barClass: "bg-red-600",
-      labelClass: "text-red-600",
-      time: new Date(slot.published_at ?? slot.updated_at),
+      key: `cancelled-${c.class_date}`,
+      kind: "Class cancelled",
+      barClass: "bg-gold",
+      labelClass: "text-gold-ink",
+      time: new Date(c.created_at),
       timeLabel: "",
-      title,
-      body,
-      unread: false,
+      title: `${slot.subject} on ${when} is cancelled`,
+      body: `${c.note ? `${c.note} ` : ""}Your streak is safe: a cancelled class doesn’t count.`,
+      unread: c.class_date >= todayIso,
     });
   }
 
-  // A handful of recent missed classes, most recent first.
-  const scheduleByDay = new Map(schedule.map((s) => [s.day, s]));
+  // Missed classes: catch-ups (open or just finished), then misses that are final.
+  for (const item of stats.catchUps) {
+    if (item.state === "done") {
+      notices.push({
+        key: `caught-up-${item.date}`,
+        kind: "Streak saved",
+        barClass: "bg-green",
+        labelClass: "text-green",
+        time: new Date(`${item.date}T12:00:00Z`),
+        timeLabel: "",
+        title: `You caught up on ${item.day}’s ${item.subject}`,
+        body: "You watched the whole recording, so it counts as attended.",
+        unread: false,
+      });
+      continue;
+    }
+    const recording = ctx.recordings.get(item.date);
+    const deadline = new Date(`${item.deadline}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short", timeZone: "UTC" });
+    notices.push({
+      key: `catch-up-${item.date}`,
+      kind: "Catch up",
+      barClass: "bg-gold",
+      labelClass: "text-gold-ink",
+      time: recording ? new Date(recording.linkedAt) : new Date(`${item.date}T12:00:00Z`),
+      timeLabel: "",
+      title: item.state === "ready" ? `${item.day}’s recording is ready. Save your streak.` : `You missed ${item.subject} on ${item.day}`,
+      body:
+        item.state === "ready" && item.lesson
+          ? `Watch “${item.lesson.title}” all the way through by ${deadline} and it counts as attended.`
+          : "When the recording is uploaded you can watch it to keep your streak. We’ll let you know.",
+      unread: item.state === "ready",
+    });
+  }
+
   let missedShown = 0;
   for (const week of stats.weeks) {
-    if (missedShown >= 4) break;
-    week.cells.forEach((cell, dayIndex) => {
-      if (missedShown >= 4 || cell.status !== "absent") return;
-      const classDate = addDaysIso(week.startDate, dayIndex);
-      const subject = scheduleByDay.get(cell.day)?.subject ?? cell.day;
-      const teacher = scheduleByDay.get(cell.day)?.teacher;
+    for (const cell of week.cells) {
+      if (missedShown >= 4 || cell.status !== "absent") continue;
+      const slot = slotOn(schedule, cell.date);
       notices.push({
-        key: `missed-${classDate}`,
+        key: `missed-${cell.date}`,
         kind: "Missed class",
         barClass: "bg-red-600",
-      labelClass: "text-red-600",
-        time: new Date(`${classDate}T12:00:00Z`),
+        labelClass: "text-red-600",
+        time: new Date(`${cell.date}T12:00:00Z`),
         timeLabel: "",
-        title: `${subject} on ${cell.day} was marked absent`,
-        body: teacher ? `Speak to ${teacher} if this was recorded in error.` : "Speak to your teacher if this was recorded in error.",
+        title: `${slot?.subject ?? cell.day} on ${cell.day} was marked absent`,
+        body: slot?.teacher ? `Speak to ${slot.teacher} if this was recorded in error.` : "Speak to your teacher if this was recorded in error.",
         unread: false,
       });
       missedShown++;
-    });
+    }
   }
 
   // streak === 0 means two different things: an actual missed class broke a
@@ -213,18 +231,20 @@ export default async function StudentNotificationsPage() {
     key: "streak",
     kind: "Streak",
     barClass: "bg-gold",
-    labelClass: "text-[#8a6b12]",
+    labelClass: "text-gold-ink",
     time: now,
     timeLabel: "",
-    title:
-      stats.streak > 0
+    title: stats.atRisk
+      ? `Your ${stats.streak} week streak is at risk`
+      : stats.streak > 0
         ? `${stats.streak} week${stats.streak === 1 ? "" : "s"} unbroken — keep it steady`
         : hasEverMissed
           ? "Your streak has reset — begin again this week"
           : "Your streak starts this week",
-    body:
-      stats.streak > 0
-        ? `You have not missed a class in ${stats.streak} week${stats.streak === 1 ? "" : "s"}. Sit through this week and it becomes ${stats.streak + 1}.`
+    body: stats.atRisk
+      ? "You missed a class. Watch its recording in time and your streak stays safe."
+      : stats.streak > 0
+        ? `You have not missed a class in ${stats.streak} week${stats.streak === 1 ? "" : "s"}. Attend every class this week and it becomes ${stats.streak + 1}.`
         : hasEverMissed
           ? "A missed class ended your run. Sit every class this week and the count starts at one."
           : "Sit every class this week and your streak count begins.",
@@ -242,7 +262,7 @@ export default async function StudentNotificationsPage() {
 
   return (
     <div className="max-w-[760px]">
-      <span className="font-mono text-[11px] tracking-[0.26em] text-muted uppercase">
+      <span className="font-mono text-[12px] tracking-[0.1em] text-primary uppercase">
         {unreadCount ? `${unreadCount} unread` : "All caught up"}
       </span>
       <h1 className="mt-3.5 mb-2.5 font-display text-[clamp(28px,3.6vw,42px)] leading-none tracking-[-0.01em] text-ink uppercase">
@@ -253,7 +273,7 @@ export default async function StudentNotificationsPage() {
         <MarkAllReadButton disabled={unreadCount === 0} />
       </div>
 
-      <div className="overflow-hidden rounded-[3px] border border-border">
+      <div className="overflow-hidden rounded-[14px] border border-border">
         {feed.map((n) => (
           <div
             key={n.key}

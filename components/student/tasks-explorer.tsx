@@ -197,7 +197,7 @@ export function TasksExplorer({ tasks, personalTasks: initialPersonal, boardCard
     <div className="max-w-[1040px]">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="font-mono text-[11px] tracking-[0.22em] text-muted uppercase">Your work</span>
+          <span className="font-mono text-[12px] tracking-[0.1em] text-primary uppercase">Your work</span>
           <h1 className="mt-2.5 font-display text-[clamp(26px,3.4vw,38px)] leading-[1.05] tracking-[-0.01em] text-ink">Tasks</h1>
         </div>
       </div>

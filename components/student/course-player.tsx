@@ -34,13 +34,14 @@ export function CoursePlayer({ lessons, progress, notes, initialLessonId }: Cour
 
   const save = useCallback((lessonId: number, completed = false, keepalive = false) => {
     const position = playerRef.current && readyRef.current ? Math.floor(playerRef.current.getCurrentTime()) : 0;
+    const duration = playerRef.current && readyRef.current ? Math.floor(playerRef.current.getDuration?.() ?? 0) : 0;
     // After finishing, restart from the top next time.
     const stored = completed ? 0 : position;
     positions.current.set(lessonId, stored);
     void fetch("/api/student/courses/progress", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lessonId, position: stored, completed }),
+      body: JSON.stringify({ lessonId, position: stored, completed, duration }),
       keepalive,
     }).catch(() => {});
   }, []);
@@ -128,7 +129,7 @@ export function CoursePlayer({ lessons, progress, notes, initialLessonId }: Cour
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div>
-        <div className="relative aspect-video w-full overflow-hidden rounded-[3px] border border-border bg-black [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full">
+        <div className="relative aspect-video w-full overflow-hidden rounded-[14px] border border-border bg-black [&_iframe]:absolute [&_iframe]:inset-0 [&_iframe]:h-full [&_iframe]:w-full">
           <div ref={hostRef} className="absolute inset-0 [&>div]:h-full [&>div]:w-full" />
         </div>
 
@@ -160,7 +161,7 @@ export function CoursePlayer({ lessons, progress, notes, initialLessonId }: Cour
         </div>
 
         {notes[current.id] && (
-          <section className="mt-8 rounded-[3px] border border-border bg-surface px-6 py-6 sm:px-8">
+          <section className="mt-8 rounded-[14px] border border-border bg-surface px-6 py-6 sm:px-8">
             <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
               <h3 className="font-display text-[15px] text-ink uppercase">Lecture notes</h3>
               <span className="font-mono text-[10.5px] text-muted">Prepared from this lesson’s video</span>
@@ -170,7 +171,7 @@ export function CoursePlayer({ lessons, progress, notes, initialLessonId }: Cour
         )}
       </div>
 
-      <aside className="overflow-hidden rounded-[3px] border border-border bg-surface lg:max-h-[calc(100vh-180px)] lg:self-start lg:overflow-y-auto thin-scroll">
+      <aside className="overflow-hidden rounded-[14px] border border-border bg-surface lg:max-h-[calc(100vh-180px)] lg:self-start lg:overflow-y-auto thin-scroll">
         <div className="sticky top-0 z-10 border-b border-border bg-surface px-4 py-3.5">
           <div className="font-display text-[13px] text-ink uppercase">Lessons</div>
           <div className="mt-1 font-mono text-[10.5px] text-muted">

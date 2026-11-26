@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const inputClasses =
-  "h-[50px] w-full rounded-[3px] border border-border-strong bg-surface px-4 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none";
+  "h-[50px] w-full rounded-[14px] border border-border-strong bg-surface px-4 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none";
 const labelClasses = "mb-2 block text-[12px] font-bold tracking-[0.1em] text-muted uppercase";
 const introClasses = "mb-[26px] text-[14.5px] leading-[1.6] text-text";
 
@@ -216,7 +216,7 @@ export function ForgotPasswordForm() {
               {accounts.map((a) => (
                 <label
                   key={a.id}
-                  className={`flex cursor-pointer items-center gap-3 rounded-[3px] border px-4 py-3 text-[14px] transition-colors ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-[14px] border px-4 py-3 text-[14px] transition-colors ${
                     accountId === a.id ? "border-primary bg-surface" : "border-border-strong"
                   }`}
                 >
@@ -288,7 +288,7 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="rounded-[3px] border border-border-strong bg-mint p-6">
+    <div className="rounded-[14px] border border-border-strong bg-mint p-6">
       <div className="font-display text-[18px] tracking-[0.02em] text-ink uppercase">Password updated</div>
       <p className="mt-3 text-[14.5px] leading-[1.65] text-text">
         You can now sign in as <span className="font-mono font-bold text-ink">{doneUsername}</span> with your new password. You&apos;ve been

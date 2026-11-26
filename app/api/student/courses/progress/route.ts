@@ -11,6 +11,7 @@ export async function POST(request: Request) {
     lessonId?: unknown;
     position?: unknown;
     completed?: unknown;
+    duration?: unknown;
   } | null;
 
   const lessonId = body?.lessonId;
@@ -21,18 +22,26 @@ export async function POST(request: Request) {
 
   const supabase = createSupabaseAdminClient();
 
-  const { data: lesson } = await supabase.from("course_lessons").select("id").eq("id", lessonId).maybeSingle();
+  const { data: lesson } = await supabase.from("course_lessons").select("id, duration_seconds").eq("id", lessonId).maybeSingle();
   if (!lesson) return NextResponse.json({ ok: false, error: "Lesson not found" }, { status: 404 });
+
+  // The player reports the video length; remember it once so progress can be shown as "x of y min".
+  const duration = Math.floor(Number(body?.duration) || 0);
+  if (!lesson.duration_seconds && duration > 0 && duration < 24 * 3600) {
+    await supabase.from("course_lessons").update({ duration_seconds: duration }).eq("id", lessonId);
+  }
 
   const { data: existing } = await supabase
     .from("lesson_progress")
-    .select("completed")
+    .select("completed, completed_at")
     .eq("student_id", session.studentId)
     .eq("lesson_id", lessonId)
     .maybeSingle();
 
   // Once completed, a lesson stays completed even if it's re-watched.
   const completed = body?.completed === true || existing?.completed === true;
+  // When it was first finished: a missed class's catch-up deadline is checked against this.
+  const completedAt = completed ? (existing?.completed_at ?? new Date().toISOString()) : null;
 
   const { error } = await supabase.from("lesson_progress").upsert(
     {
@@ -40,6 +49,7 @@ export async function POST(request: Request) {
       lesson_id: lessonId,
       last_position_seconds: position,
       completed,
+      completed_at: completedAt,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "student_id,lesson_id" },

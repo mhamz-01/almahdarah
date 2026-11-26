@@ -1,7 +1,7 @@
 // Pure logic behind the two student emails: it turns database rows into plain
 // objects that the templates render. No I/O here, so it is fully unit-tested.
 
-import { computeStudentStats } from "@/lib/students";
+import { computeStudentStats, EMPTY_STREAK_CONTEXT, slotOn, type StreakContext } from "@/lib/students";
 import { buildTaskItems, type TaskItem } from "@/lib/task-items";
 import { addDays, pakistanDateOf } from "@/lib/email/dates";
 import { weekRangeLabel } from "@/lib/task-plan";
@@ -18,7 +18,7 @@ import type {
 const WEEKDAYS: Weekday[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const MAX_LINES = 5;
 
-export type ClassDayStatus = "present" | "absent" | "cancelled" | "upcoming" | "none";
+export type ClassDayStatus = "present" | "caught_up" | "catch_up" | "absent" | "cancelled" | "upcoming" | "none";
 
 export interface ClassDay {
   day: Weekday;
@@ -68,6 +68,8 @@ export interface DigestInput {
   weekStart: string;
   /** Today in Pakistan: decides what is overdue and whether the week is finished. */
   todayIso: string;
+  /** Cancellations, recordings and catch-up progress. Without it only the timetable is used. */
+  ctx?: StreakContext;
 }
 
 function group(items: TaskItem[], todayIso: string): TaskGroup {
@@ -95,19 +97,27 @@ export function buildWeeklyDigest(input: DigestInput): WeeklyDigest {
   // Finished week: look from the Monday after it, so the streak includes that week and
   // every weekday counts as past. Current week: look from today.
   const referenceIso = inProgress ? todayIso : addDays(weekEnd, 1);
-  const stats = computeStudentStats(student, input.attendance, new Date(`${referenceIso}T12:00:00Z`));
+  const ctx: StreakContext = input.ctx ?? { ...EMPTY_STREAK_CONTEXT, schedule };
+  const stats = computeStudentStats(student, input.attendance, new Date(`${referenceIso}T12:00:00Z`), ctx);
   const week = stats.weeks.find((w) => w.startDate === weekStart);
 
   const days: ClassDay[] = WEEKDAYS.map((day, i) => {
-    const slot = schedule.find((s) => s.day === day);
-    const cell = week?.cells[i];
     const iso = addDays(weekStart, i);
+    const slot = slotOn(ctx.schedule, iso);
+    const cell = week?.cells[i];
     let status: ClassDayStatus;
-    if (!slot) status = "none";
-    else if (slot.status !== "scheduled") status = "cancelled";
-    else if (cell?.status === "present") status = "present";
-    else if (cell?.status === "absent") status = "absent";
-    else status = iso >= todayIso ? "upcoming" : "none";
+    switch (cell?.status) {
+      case "present":
+      case "caught_up":
+      case "catch_up":
+      case "absent":
+      case "cancelled":
+      case "upcoming":
+        status = cell.status;
+        break;
+      default:
+        status = "none";
+    }
     return { day, subject: slot?.subject ?? null, status };
   });
 
@@ -136,7 +146,7 @@ export function buildWeeklyDigest(input: DigestInput): WeeklyDigest {
     inProgress,
     classes: {
       held: days.filter((d) => d.status !== "none" && d.status !== "cancelled").length,
-      attended: days.filter((d) => d.status === "present").length,
+      attended: days.filter((d) => d.status === "present" || d.status === "caught_up").length,
       missed: days.filter((d) => d.status === "absent").length,
       days,
     },

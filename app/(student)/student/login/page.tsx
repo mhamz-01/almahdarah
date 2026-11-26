@@ -14,7 +14,7 @@ export default function StudentLoginPage() {
       <div className="relative hidden overflow-hidden bg-navy lg:block">
         <div
           className="absolute inset-0"
-          style={{ background: "linear-gradient(168deg, rgba(37,52,93,.92) 0%, rgba(17,130,163,.82) 100%)" }}
+          style={{ background: "linear-gradient(168deg, rgba(14,42,71,.94) 0%, rgba(17,130,163,.82) 100%)" }}
         />
         <div className="relative flex h-full flex-col justify-between p-[52px] text-white">
           <Image
@@ -38,7 +38,7 @@ export default function StudentLoginPage() {
 
       <div className="flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-[390px]">
-          <span className="font-mono text-[11px] tracking-[0.26em] text-muted uppercase">Enrolled students only</span>
+          <span className="font-mono text-[12px] tracking-[0.1em] text-primary uppercase">Enrolled students only</span>
           <h1 className="mt-4 mb-2.5 font-display text-[clamp(28px,3.4vw,38px)] leading-none tracking-[-0.01em] text-ink uppercase">
             Sign in
           </h1>

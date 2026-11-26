@@ -260,11 +260,16 @@ export interface ClassScheduleRow {
   duration: string;
   teacher: string;
   color: string;
+  /** Legacy weekly flag. Cancelling is now per date (ClassCancellationRow); always "scheduled". */
   status: SlotStatus;
   note: string;
   sort_order: number;
   updated_at: string;
   published_at: string | null;
+  /** The row only counts towards streaks from this date (YYYY-MM-DD). */
+  active_from: string;
+  /** Course whose playlist holds this class's recordings; null = guessed from the subject. */
+  course_id: number | null;
 }
 
 export interface ClassScheduleUpdate {
@@ -272,8 +277,8 @@ export interface ClassScheduleUpdate {
   start_time?: string;
   duration?: string;
   teacher?: string;
-  status?: SlotStatus;
   note?: string;
+  course_id?: number | null;
 }
 
 export interface ClassScheduleInsert {
@@ -283,8 +288,30 @@ export interface ClassScheduleInsert {
   duration: string;
   teacher: string;
   color: string;
-  status: SlotStatus;
   note: string;
+  course_id: number | null;
+}
+
+export const CANCEL_REASONS = ["Teacher unavailable", "Holiday", "Technical issue", "Other"] as const;
+export type CancelReason = (typeof CANCEL_REASONS)[number];
+
+export interface ClassCancellationRow {
+  id: number;
+  class_date: string;
+  schedule_id: number | null;
+  reason: string;
+  note: string;
+  created_at: string;
+}
+
+export interface ClassRecordingRow {
+  id: number;
+  class_date: string;
+  schedule_id: number | null;
+  lesson_id: number;
+  source: "auto" | "admin";
+  linked_at: string;
+  notified_at: string | null;
 }
 
 export interface StudentRow {
@@ -319,23 +346,74 @@ export interface StudentNoteInsert {
   body: string;
 }
 
+/**
+ * What one weekday means for a student's streak:
+ *   present     punched in
+ *   caught_up   missed, then watched the whole recording in time (counts as attended)
+ *   catch_up    missed, and the catch-up window is still open (waiting for the recording or for them to watch it)
+ *   absent      missed for good
+ *   cancelled   the admin cancelled that date, never counts
+ *   no_class    nothing on the timetable that day, never counts
+ *   upcoming    today (not punched yet) or later
+ *   before_join before the student's account existed
+ */
+export type DayStatus = "present" | "caught_up" | "catch_up" | "absent" | "cancelled" | "no_class" | "upcoming" | "before_join";
+
 export interface AttendanceCell {
   day: Weekday;
-  status: AttendanceStatus | null;
+  date: string;
+  status: DayStatus;
 }
+
+export type WeekOutcome = "perfect" | "missed" | "paused" | "in_progress";
 
 export interface AttendanceWeek {
   range: string;
   startDate: string;
   cells: AttendanceCell[];
+  /** Classes that count this week (held, not cancelled, after joining). Today and later included. */
+  target: number;
+  /** present + caught_up */
+  attended: number;
+  outcome: WeekOutcome;
+}
+
+export interface CatchUpItem {
+  date: string;
+  day: Weekday;
+  subject: string;
+  /** waiting = no recording yet, ready = recording linked and not finished, done = watched in time */
+  state: "waiting" | "ready" | "done";
+  /** Last day to finish watching (while waiting: the last day the recording can still arrive). */
+  deadline: string;
+  lesson: { id: number; courseId: number; position: number; title: string; videoId: string } | null;
+  watchedSeconds: number;
+  durationSeconds: number | null;
+}
+
+export interface Milestone {
+  weeks: number;
+  name: string;
 }
 
 export interface StudentWithStats extends StudentRow {
   streak: number;
+  bestStreak: number;
+  perfectWeeks: number;
   missedTotal: number;
   attendedThisWeek: number;
+  targetThisWeek: number;
+  /** True when the streak depends on a catch-up that isn't finished yet. */
+  atRisk: boolean;
+  /** Attended (incl. caught up) / classes that counted, 0 to 100; null before any class. */
+  attendanceRate: number | null;
   lastMissed: string;
+  /** Newest first; index 0 is this week. Up to 5 weeks. */
   weeks: AttendanceWeek[];
+  /** Open catch-ups plus ones finished in the last 7 days, oldest first. */
+  catchUps: CatchUpItem[];
+  earnedMilestones: Milestone[];
+  nextMilestone: Milestone | null;
 }
 
 // Full DB row, including auth fields — never pass this to a client
@@ -519,5 +597,6 @@ export interface LessonProgressRow {
   lesson_id: number;
   last_position_seconds: number;
   completed: boolean;
+  completed_at: string | null;
   updated_at: string;
 }

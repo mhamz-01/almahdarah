@@ -15,6 +15,7 @@
   --primary-2: #2b7977;
   --navy: #25345d;
   --gold: #f2c953;
+  --gold-ink: #8a6b12;
   --green: #3e9e54;
   --shadow-sm:
     0 1px 2px rgba(43, 42, 38, 0.05), 0 8px 22px rgba(43, 42, 38, 0.06);
@@ -39,6 +40,7 @@
   --primary-2: #43afa5;
   --navy: #25345d;
   --gold: #f4d06b;
+  --gold-ink: #e3c27a;
   --green: #56bc6c;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-md: 0 14px 38px rgba(0, 0, 0, 0.5);
@@ -69,6 +71,7 @@
   --color-primary-ink: var(--primary-ink);
   --color-accent: var(--accent);
   --color-accent-soft: var(--accent-soft);
+  --color-gold-ink: var(--gold-ink);
 
   --font-kufi: var(--font-reem-kufi);
   --font-display: var(--font-archivo-black);
@@ -81,18 +84,6 @@
 *::before,
 *::after {
   box-sizing: border-box;
-}
-
-/* Student portal: Poppins everywhere (headings, labels, quotes). Set on the root
-   so portalled dialogs get it too; the marker lives in app/student/(portal)/layout.tsx. */
-:root:has(.student-poppins) {
-  --font-archivo-black: var(--font-poppins);
-  --font-jetbrains-mono: var(--font-poppins);
-  --font-spectral: var(--font-poppins);
-}
-
-:root:has(.student-poppins) .font-display {
-  font-weight: 700;
 }
 
 body {
@@ -709,4 +700,69 @@ html.planner-dragging body {
   .ld-orbit {
     animation: none;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Student pages on v2 (app/(student)/layout.tsx). The shared utilities point at
+   the original fonts (Poppins, JetBrains Mono); inside the student area they
+   point at the v2 fonts instead. body carries the same attributes while a
+   student page is open, so dialogs portalled onto it match.
+--------------------------------------------------------------------------- */
+[data-ds="v2"][data-portal="student"] {
+  --font-poppins: var(--font-geist);
+  --font-jetbrains-mono: var(--font-geist-mono);
+  --font-archivo-black: var(--font-geist);
+  --font-spectral: var(--font-newsreader);
+  --gold-ink: #8a6a1f;
+}
+[data-theme="dark"] [data-ds="v2"][data-portal="student"],
+[data-theme="dark"][data-ds="v2"][data-portal="student"] {
+  --gold-ink: #e3c27a;
+}
+[data-ds="v2"][data-portal="student"] h1.font-display {
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+/* ── Student home: the week path (components/student/streak-panel.tsx) ───── */
+.wk-node {
+  animation: wk-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 150ms);
+}
+.wk-fill {
+  transform-origin: left center;
+  animation: wk-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+.wk-tick {
+  stroke-dasharray: 24;
+  animation: wk-draw 0.45s ease-out both;
+  animation-delay: calc(var(--i, 0) * 90ms + 450ms);
+}
+.wk-ring {
+  animation: wk-ring 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 400ms);
+}
+.wk-halo {
+  animation: wk-halo 2.2s ease-out infinite;
+}
+@keyframes wk-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes wk-fill {
+  from { transform: scaleX(0); }
+}
+@keyframes wk-draw {
+  from { stroke-dashoffset: 24; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes wk-ring {
+  from { stroke-dashoffset: 100; }
+}
+@keyframes wk-halo {
+  0% { transform: scale(1); opacity: 0.55; }
+  80%, 100% { transform: scale(1.75); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wk-node, .wk-fill, .wk-tick, .wk-ring, .wk-halo { animation: none; }
 }

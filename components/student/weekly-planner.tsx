@@ -152,7 +152,7 @@ function Chip({ task, todayIso, busy, lifted, alwaysMenu, onToggle, onOpen, onPl
           type="button"
           onClick={() => onPlan(todayIso)}
           disabled={busy}
-          className="mt-2 w-full rounded-full bg-gold/25 px-2 py-1 text-[11px] font-bold text-[#8a6b12] hover:bg-gold/35"
+          className="mt-2 w-full rounded-full bg-gold/25 px-2 py-1 text-[11px] font-bold text-gold-ink hover:bg-gold/35"
         >
           Missed · do it today
         </button>
@@ -392,7 +392,7 @@ export function WeeklyPlanner({ tasks, todayIso, busyId, error, onToggle, onPlan
                     {summary.done} of {summary.planned} done
                   </span>
                   <span className="text-muted">
-                    {summary.pct}%{summary.missed > 0 && <span className="font-semibold text-[#8a6b12]"> · {summary.missed} missed</span>}
+                    {summary.pct}%{summary.missed > 0 && <span className="font-semibold text-gold-ink"> · {summary.missed} missed</span>}
                   </span>
                 </div>
                 <div

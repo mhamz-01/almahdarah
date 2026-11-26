@@ -5,6 +5,17 @@ Feature details live in their own docs (see links).
 
 ---
 
+## 2026-11-23: Flexible classes, per-date cancelling, catch-up streaks
+
+- **Streak target = classes actually held.** Timetable rows for that week, minus dates the admin cancelled. Days with no class (e.g. Friday) never count. Before, every Mon-Fri counted, which broke streaks after moving to 4 classes.
+- **Cancelling is per date** (`class_cancellations`). Admin: "This week" strip on /admin/schedule (prev/next weeks) and a "Today's class" card on /admin with a quick cancel button. Optional email to students. A fully cancelled week pauses the streak.
+- **Catch-up instead of a miss.** The nightly course sync links each new lesson to the latest unlinked held class of that course (`class_recordings`; course set on the timetable row or guessed from the class name). Students who missed it get an email and a dashboard card; watching the whole lesson within 7 days makes it "caught up" (counts as attended). Reminder email 2 days before the deadline (plan-reminders cron). No limit on catch-ups. Admin can change a link by hand.
+- **Rewards:** best streak, perfect weeks, attendance %, badges at 4/8/12/26 weeks. Student dashboard redesigned around one streak card.
+- **Migration 0031 must run before deploying** (the progress API now writes `lesson_progress.completed_at`).
+- Tests: `npm run test:streak` (18). All suites pass; `next build` passes. Design canvas: https://claude.ai/artifact/E2EufUbrUFEDr2ZUXMKdew
+
+---
+
 ## 2026-10-13: Fewer Gemini requests, failure-proofing
 
 - **Clips are now 20 minutes** (was 5): a 60-min lecture = 3 requests instead of 12.

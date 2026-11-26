@@ -127,7 +127,7 @@ export function MyTasksTable({ tasks, todayIso, now, busyId, error, onToggle, on
               onChange={(v) => onPlan(task, v || null)}
               className={
                 state === "missed"
-                  ? "border-gold bg-gold/10 text-[#8a6b12]"
+                  ? "border-gold bg-gold/10 text-gold-ink"
                   : task.planned_date
                     ? "border-border-strong text-ink"
                     : "border-dashed border-border-strong text-muted"
@@ -238,7 +238,7 @@ export function MyTasksTable({ tasks, todayIso, now, busyId, error, onToggle, on
               {group.label && (
                 <h3
                   className={`mb-2 flex items-center gap-2 px-1 font-mono text-[10.5px] tracking-[0.18em] uppercase ${
-                    group.key === "missed" ? "text-[#8a6b12]" : "text-muted"
+                    group.key === "missed" ? "text-gold-ink" : "text-muted"
                   }`}
                 >
                   {group.label}

@@ -61,7 +61,6 @@ export function AddClassModal({ open, onOpenChange, takenDays, onCreated }: AddC
           duration: duration.trim(),
           teacher: teacher.trim(),
           color,
-          status: "scheduled",
           note: "",
         }),
       });

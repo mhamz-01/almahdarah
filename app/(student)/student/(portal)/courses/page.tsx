@@ -24,7 +24,7 @@ export default async function StudentCoursesPage() {
 
   return (
     <div className="max-w-[1000px]">
-      <span className="font-mono text-[11px] tracking-[0.26em] text-muted uppercase">Learn</span>
+      <span className="font-mono text-[12px] tracking-[0.1em] text-primary uppercase">Learn</span>
       <h1 className="mt-3.5 mb-2.5 font-display text-[clamp(28px,3.6vw,42px)] leading-none tracking-[-0.01em] text-ink uppercase">
         Courses
       </h1>
@@ -33,13 +33,13 @@ export default async function StudentCoursesPage() {
       </p>
 
       {coursesRes.error && (
-        <p className="mb-4 rounded-[3px] border border-red-600/30 bg-red-600/5 px-4 py-3 text-[13px] text-red-600">
+        <p className="mb-4 rounded-[14px] border border-red-600/30 bg-red-600/5 px-4 py-3 text-[13px] text-red-600">
           Couldn&apos;t load courses: {coursesRes.error.message}
         </p>
       )}
 
       {courses.length === 0 && !coursesRes.error && (
-        <p className="rounded-[3px] border border-border bg-surface px-6 py-8 text-[14px] text-text">
+        <p className="rounded-[14px] border border-border bg-surface px-6 py-8 text-[14px] text-text">
           No courses have been published yet.
         </p>
       )}
@@ -53,7 +53,7 @@ export default async function StudentCoursesPage() {
             <Link
               key={course.id}
               href={`/student/courses/${course.id}`}
-              className="group overflow-hidden rounded-[3px] border border-border bg-surface transition-colors hover:border-border-strong"
+              className="group overflow-hidden rounded-[14px] border border-border bg-surface transition-colors hover:border-border-strong"
             >
               <div className="relative aspect-video bg-surface-2">
                 {course.thumbnail_url && (

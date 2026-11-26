@@ -104,6 +104,8 @@ function taskListText(group: TaskGroup): string {
 
 const CLASS_LABEL: Record<ClassDayStatus, { text: string; color: string }> = {
   present: { text: "Attended", color: C.green },
+  caught_up: { text: "Caught up", color: C.green },
+  catch_up: { text: "Missed · catch up", color: C.gold },
   absent: { text: "Missed", color: C.red },
   cancelled: { text: "Cancelled", color: C.gold },
   upcoming: { text: "Coming up", color: C.muted },
@@ -114,6 +116,7 @@ function encouragement(d: WeeklyDigest): string {
   const { held, attended, missed } = d.classes;
   if (held > 0 && missed === 0 && attended === held) return "Every class attended. Masha’Allah, keep it going.";
   if (missed > 0) return "A missed class isn’t the end. Sit the next one and begin again.";
+  if (d.classes.days.some((day) => day.status === "catch_up")) return "You missed a class: watch its recording within 7 days and your streak stays safe.";
   if (d.tasks.doneThisWeek.total > 0) return "Steady effort adds up. Well done on what you finished.";
   return "A new week is a fresh start. Even one small step counts.";
 }
@@ -337,5 +340,105 @@ ${detail("Password", passwordValue)}
       footer: esc(SECURITY_FOOTER),
     }),
     text,
+  };
+}
+
+// ---------- classes: cancelled, catch-up ready, catch-up reminder ----------
+
+function paragraph(text: string): string {
+  return `<p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:${C.text};">${text}</p>`;
+}
+
+export interface CatchUpEmail {
+  firstName: string;
+  subject: string;
+  classDate: string;
+  lessonTitle: string;
+  deadline: string;
+  streak: number;
+  href: string;
+}
+
+export function renderCatchUpReady(e: CatchUpEmail, siteUrl: string): RenderedEmail {
+  const keep = e.streak > 0 ? `and your ${e.streak} week streak stays safe` : "and it counts as attended";
+  const body =
+    paragraph(`You missed <strong>${esc(e.subject)}</strong> on ${esc(longDate(e.classDate))}. The recording is ready: <strong>${esc(e.lessonTitle)}</strong>.`) +
+    paragraph(`Watch the whole lesson by <strong>${esc(longDate(e.deadline))}</strong> ${keep}.`);
+  return {
+    subject: `Catch up on ${e.subject} to keep your streak`,
+    html: shell({
+      preheader: `Watch the recording by ${longDate(e.deadline)}`,
+      title: `Assalamu alaikum, ${e.firstName}`,
+      subtitle: "The class you missed is ready to watch",
+      body,
+      siteUrl,
+      cta: { label: "Watch the recording", href: e.href },
+    }),
+    text: [
+      `Assalamu alaikum, ${e.firstName}`,
+      ``,
+      `You missed ${e.subject} on ${longDate(e.classDate)}. The recording is ready: ${e.lessonTitle}.`,
+      `Watch the whole lesson by ${longDate(e.deadline)} ${keep}.`,
+      ``,
+      `Watch it: ${e.href}`,
+      `Manage these emails: ${siteUrl}/student/reminders`,
+    ].join("\n"),
+  };
+}
+
+export function renderCatchUpReminder(e: CatchUpEmail & { daysLeft: number }, siteUrl: string): RenderedEmail {
+  const left = e.daysLeft === 1 ? "1 day" : `${e.daysLeft} days`;
+  const body =
+    paragraph(`You have <strong>${left}</strong> left to watch the recording of <strong>${esc(e.subject)}</strong> (${esc(longDate(e.classDate))}).`) +
+    paragraph(`Finish <strong>${esc(e.lessonTitle)}</strong> by ${esc(longDate(e.deadline))}${e.streak > 0 ? ` to keep your ${e.streak} week streak` : ""}.`);
+  return {
+    subject: `${left} left to catch up on ${e.subject}`,
+    html: shell({
+      preheader: `Finish the recording by ${longDate(e.deadline)}`,
+      title: `${left} left to save your streak`,
+      subtitle: `Assalamu alaikum, ${e.firstName}`,
+      body,
+      siteUrl,
+      cta: { label: "Continue watching", href: e.href },
+    }),
+    text: [
+      `Assalamu alaikum, ${e.firstName}`,
+      ``,
+      `You have ${left} left to watch the recording of ${e.subject} (${longDate(e.classDate)}).`,
+      `Finish ${e.lessonTitle} by ${longDate(e.deadline)}.`,
+      ``,
+      `Continue watching: ${e.href}`,
+      `Manage these emails: ${siteUrl}/student/reminders`,
+    ].join("\n"),
+  };
+}
+
+export function renderClassCancelled(
+  c: { firstName: string; subject: string; classDate: string; reason: string; note: string },
+  siteUrl: string,
+): RenderedEmail {
+  const body =
+    paragraph(`<strong>${esc(c.subject)}</strong> on ${esc(longDate(c.classDate))} is cancelled (${esc(c.reason.toLowerCase())}).`) +
+    (c.note ? paragraph(esc(c.note)) : "") +
+    paragraph("Your streak is safe: a cancelled class doesn’t count.");
+  return {
+    subject: `Cancelled: ${c.subject} on ${longDate(c.classDate)}`,
+    html: shell({
+      preheader: "Your streak is safe",
+      title: "Class cancelled",
+      subtitle: `Assalamu alaikum, ${c.firstName}`,
+      body,
+      siteUrl,
+      cta: { label: "Open the student portal", href: `${siteUrl}/student` },
+    }),
+    text: [
+      `Assalamu alaikum, ${c.firstName}`,
+      ``,
+      `${c.subject} on ${longDate(c.classDate)} is cancelled (${c.reason.toLowerCase()}).`,
+      c.note,
+      `Your streak is safe: a cancelled class doesn't count.`,
+      ``,
+      `${siteUrl}/student`,
+    ].join("\n"),
   };
 }

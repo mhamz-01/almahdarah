@@ -7,6 +7,18 @@ import { LogoLoader } from "@/components/ui/logo-loader";
 const MIN_VISIBLE_MS = 550;
 const SAFETY_TIMEOUT_MS = 8000;
 
+/** The signed-in portal a path belongs to (its login pages excluded), or null for the public site. */
+function portalOf(pathname: string): "admin" | "student" | null {
+  for (const portal of ["admin", "student"] as const) {
+    const base = `/${portal}`;
+    if (pathname !== base && !pathname.startsWith(`${base}/`)) continue;
+    const rest = pathname.slice(base.length);
+    if (/^\/(login|forgot-password|request-access)(\/|$)/.test(rest)) return null;
+    return portal;
+  }
+  return null;
+}
+
 export function RouteLoader() {
   const pathname = usePathname();
   const [visible, setVisible] = useState(true);
@@ -66,6 +78,9 @@ export function RouteLoader() {
       if (url.origin !== window.location.origin) return;
       // Same-page hash links (incl. smooth-scroll nav) don't navigate — skip them.
       if (url.pathname === window.location.pathname && url.hash) return;
+      // Inside a portal the sidebar stays and the page shows its own skeleton (loading.tsx).
+      const from = portalOf(window.location.pathname);
+      if (from && from === portalOf(url.pathname)) return;
 
       if (timerRef.current) clearTimeout(timerRef.current);
       shownAtRef.current = Date.now();

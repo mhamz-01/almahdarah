@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 const inputClasses =
-  "h-[50px] w-full rounded-[3px] border border-border-strong bg-surface px-4 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none";
+  "h-[50px] w-full rounded-[14px] border border-border-strong bg-surface px-4 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none";
 const labelClasses = "mb-2 block text-[12px] font-bold tracking-[0.1em] text-muted uppercase";
 
 export function RequestAccessForm() {
@@ -59,7 +59,7 @@ export function RequestAccessForm() {
 
   if (done) {
     return (
-      <div className="rounded-[3px] border border-border-strong bg-mint p-6">
+      <div className="rounded-[14px] border border-border-strong bg-mint p-6">
         <div className="font-display text-[18px] tracking-[0.02em] text-ink uppercase">Request sent</div>
         <p className="mt-3 text-[14.5px] leading-[1.65] text-text">
           Thank you, {name.trim().split(" ")[0]}. Your teacher will review your request. Once it&apos;s accepted you can
@@ -163,7 +163,7 @@ export function RequestAccessForm() {
           rows={4}
           maxLength={1000}
           placeholder="Tell us what you'd like to use it for"
-          className="w-full resize-y rounded-[3px] border border-border-strong bg-surface px-4 py-3 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none"
+          className="w-full resize-y rounded-[14px] border border-border-strong bg-surface px-4 py-3 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none"
         />
       </label>
 

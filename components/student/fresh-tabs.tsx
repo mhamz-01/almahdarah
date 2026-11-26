@@ -5,12 +5,15 @@ import Link from "next/link";
 import { Segmented } from "@/components/ui/segmented";
 
 export interface FreshClass {
-  id: number;
+  id: number | string;
   href: string;
-  videoId: string;
+  /** Null while a missed class's recording isn't uploaded yet. */
+  videoId: string | null;
   title: string;
   course: string;
   when: string;
+  /** Set for a class the student missed: catch up on its recording to keep the streak. */
+  missed?: { state: "waiting" | "ready" | "done"; deadline: string; pct: number };
 }
 
 export interface FreshTask {
@@ -65,28 +68,60 @@ function Pager({ page, pages, total, onPage }: { page: number; pages: number; to
   );
 }
 
+function shortDate(iso: string) {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+}
+
 function ClassCard({ c }: { c: FreshClass }) {
+  const m = c.missed;
+  const badge = !m
+    ? { text: c.when, cls: "bg-navy/85 text-white" }
+    : m.state === "done"
+      ? { text: "Caught up ✓", cls: "bg-green text-white" }
+      : { text: `Missed ${c.when} · catch up`, cls: "bg-gold text-navy" };
+  const cta = !m
+    ? "Watch lesson →"
+    : m.state === "done"
+      ? "Streak saved. Watch again →"
+      : m.state === "waiting"
+        ? "Recording coming soon"
+        : `Watch by ${shortDate(m.deadline)} to keep your streak →`;
   return (
     <Link
       href={c.href}
-      className="group flex flex-col overflow-hidden rounded-[22px] border border-border bg-surface transition-colors hover:border-border-strong"
+      className={`group flex flex-col overflow-hidden rounded-[22px] border bg-surface transition-colors hover:border-border-strong ${
+        m && m.state !== "done" ? "border-gold" : "border-border"
+      }`}
     >
       <div className="relative aspect-video overflow-hidden bg-surface-2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`https://i.ytimg.com/vi/${c.videoId}/hqdefault.jpg`}
-          alt=""
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-        />
-        <span className="absolute top-3 left-3 rounded-full bg-navy/85 px-2.5 py-1 font-mono text-[10.5px] tracking-[0.08em] text-white uppercase">
-          {c.when}
+        {c.videoId ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={`https://i.ytimg.com/vi/${c.videoId}/hqdefault.jpg`}
+            alt=""
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center px-6 text-center text-[13px] text-muted">
+            The recording isn’t up yet. We’ll let you know.
+          </span>
+        )}
+        <span className={`absolute top-3 left-3 rounded-full px-2.5 py-1 font-mono text-[10.5px] font-bold tracking-[0.08em] uppercase ${badge.cls}`}>
+          {badge.text}
         </span>
+        {m && m.pct > 0 && m.state === "ready" && (
+          <span className="absolute right-0 bottom-0 left-0 h-1.5 bg-white/40">
+            <span className="block h-full bg-gold" style={{ width: `${m.pct}%` }} />
+          </span>
+        )}
       </div>
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <span className="truncate font-mono text-[11px] text-muted">{c.course}</span>
         <span className="mt-1.5 line-clamp-2 text-[15px] leading-[1.35] font-semibold text-ink group-hover:underline">{c.title}</span>
-        <span className="mt-auto pt-4 text-[13px] font-bold text-primary">Watch lesson →</span>
+        <span className={`mt-auto pt-4 text-[13px] font-bold ${m?.state === "waiting" ? "text-muted" : m && m.state !== "done" ? "text-gold-ink" : "text-primary"}`}>
+          {cta}
+        </span>
       </div>
     </Link>
   );

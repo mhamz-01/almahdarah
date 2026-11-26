@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { syncCoursePlaylists } from "@/lib/course-sync";
+import { linkRecordings } from "@/lib/recordings";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -14,7 +15,14 @@ export async function GET(request: Request) {
 
   try {
     const results = await syncCoursePlaylists();
-    return NextResponse.json({ ok: true, results });
+    // New lessons may be recordings of classes students missed: link them and email those students.
+    let recordings: Awaited<ReturnType<typeof linkRecordings>> | { error: string };
+    try {
+      recordings = await linkRecordings();
+    } catch (err) {
+      recordings = { error: err instanceof Error ? err.message : "Linking recordings failed" };
+    }
+    return NextResponse.json({ ok: true, results, recordings });
   } catch (err) {
     return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Sync failed" }, { status: 500 });
   }

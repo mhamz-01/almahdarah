@@ -1,45 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+/**
+ * "Mark me present" for today. The button switches straight away (optimistic) and the
+ * request runs in the background; if the server refuses, it switches back and says why.
+ * Clicks are queued, so a quick "mark" then "undo" reach the server in order.
+ */
 export function PunchButton({ punched: initialPunched, onDark = false }: { punched: boolean; onDark?: boolean }) {
   const router = useRouter();
   const [punched, setPunched] = useState(initialPunched);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [, startTransition] = useTransition();
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const latest = useRef(0);
 
-  async function mark() {
-    setLoading(true);
+  function send(next: boolean) {
+    const id = ++latest.current;
+    const previous = punched;
+    setPunched(next);
     setError(null);
-    try {
-      const res = await fetch("/api/student/attendance", { method: "POST" });
-      const json = (await res.json()) as { ok: boolean; error?: string };
-      if (!res.ok || !json.ok) throw new Error(json.error ?? "Couldn't mark you present");
-      setPunched(true);
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't mark you present");
-    } finally {
-      setLoading(false);
-    }
+
+    queue.current = queue.current.then(async () => {
+      try {
+        const res = await fetch("/api/student/attendance", { method: next ? "POST" : "DELETE" });
+        const json = (await res.json().catch(() => ({ ok: false }))) as { ok: boolean; error?: string };
+        if (!res.ok || !json.ok) throw new Error(json.error ?? (next ? "Couldn't mark you present" : "Couldn't undo"));
+        // Only the last click refreshes the rest of the page (streak, week tiles).
+        if (id === latest.current) startTransition(() => router.refresh());
+      } catch (e) {
+        if (id !== latest.current) return;
+        setPunched(previous);
+        setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
+      }
+    });
   }
 
-  async function undo() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/student/attendance", { method: "DELETE" });
-      const json = (await res.json()) as { ok: boolean; error?: string };
-      if (!res.ok || !json.ok) throw new Error(json.error ?? "Couldn't undo");
-      setPunched(false);
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't undo");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const errorText = error && <p role="alert" className={`text-[12px] font-semibold ${onDark ? "text-red-300" : "text-red-600"}`}>{error}</p>;
 
   if (punched) {
     return (
@@ -53,13 +51,12 @@ export function PunchButton({ punched: initialPunched, onDark = false }: { punch
         </span>
         <button
           type="button"
-          onClick={undo}
-          disabled={loading}
-          className={`bg-none text-[12px] font-semibold underline disabled:opacity-60 ${onDark ? "text-white/70" : "text-muted"}`}
+          onClick={() => send(false)}
+          className={`bg-none text-[12px] font-semibold underline ${onDark ? "text-white/70" : "text-muted"}`}
         >
-          {loading ? "Undoing…" : "Undo"}
+          Undo
         </button>
-        {error && <p className={`text-[12px] font-semibold ${onDark ? "text-red-300" : "text-red-600"}`}>{error}</p>}
+        {errorText}
       </div>
     );
   }
@@ -68,15 +65,14 @@ export function PunchButton({ punched: initialPunched, onDark = false }: { punch
     <div className="flex flex-col items-end gap-1.5">
       <button
         type="button"
-        onClick={mark}
-        disabled={loading}
-        className={`h-[54px] rounded-full px-[30px] text-[15px] font-bold shadow-[var(--shadow-sm)] transition-colors hover:brightness-[1.08] disabled:cursor-not-allowed disabled:opacity-60 ${
+        onClick={() => send(true)}
+        className={`h-[54px] rounded-full px-[30px] text-[15px] font-bold shadow-[var(--shadow-sm)] transition-colors hover:brightness-[1.08] ${
           onDark ? "bg-gold text-navy" : "bg-primary text-white"
         }`}
       >
-        {loading ? "Marking…" : "Mark me present"}
+        Mark me present
       </button>
-      {error && <p className={`text-[12px] font-semibold ${onDark ? "text-red-300" : "text-red-600"}`}>{error}</p>}
+      {errorText}
     </div>
   );
 }

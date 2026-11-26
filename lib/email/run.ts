@@ -5,11 +5,11 @@ import { buildPlanReminder, buildWeeklyDigest, reminderHasContent } from "@/lib/
 import { currentWeek, isoWeekday, pakistanToday, previousWeek } from "@/lib/email/dates";
 import { emailConfigured, sendMany, sendOne, siteUrl, type OutgoingEmail, type SendResult } from "@/lib/email/send";
 import { renderPlanReminder, renderWeeklyDigest } from "@/lib/email/templates";
+import { loadClassCalendar, loadRecordingProgress, streakContextFor } from "@/lib/class-calendar";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import type {
   AttendanceRow,
   BoardCardRow,
-  ClassScheduleRow,
   StudentEmailPrefsRow,
   StudentRow,
   StudentTaskRow,
@@ -115,18 +115,18 @@ export async function runWeeklyDigest(options: RunOptions = {}): Promise<RunSumm
   const summary: RunSummary = { ok: true, kind: "weekly-digest", dryRun: !!options.dryRun, date: todayIso, eligible: 0, sent: 0, failed: [], skipped: {} };
 
   const [students, prefs] = await Promise.all([loadStudents(supabase, options.onlyStudentId), loadPrefs(supabase, !!options.dryRun)]);
-  const [attendance, schedule, assigned, personal, cards] = await Promise.all([
-    fetchAll<AttendanceRow>((from, to) => supabase.from("attendance").select("*").gte("class_date", week.start).range(from, to)),
-    supabase.from("class_schedule").select("*").then((r) => (r.data ?? []) as ClassScheduleRow[]),
+  // The streak looks back to when each student joined.
+  const since = students.reduce((min, s) => (s.created_at.slice(0, 10) < min ? s.created_at.slice(0, 10) : min), week.start);
+  const [attendance, calendar, assigned, personal, cards] = await Promise.all([
+    fetchAll<AttendanceRow>((from, to) => supabase.from("attendance").select("*").gte("class_date", since).order("id").range(from, to)),
+    loadClassCalendar(supabase, since),
     supabase.from("tasks").select("*").then((r) => (r.data ?? []) as TaskRow[]),
     fetchAll<StudentTaskRow>((from, to) => supabase.from("student_tasks").select("*").range(from, to)),
     fetchAll<BoardCardRow>((from, to) => supabase.from("board_cards").select("*").range(from, to)),
   ]);
-  // The streak looks back four more weeks than the report itself.
-  const history = await fetchAll<AttendanceRow>((from, to) =>
-    supabase.from("attendance").select("*").gte("class_date", subtractDays(week.start, 28)).lt("class_date", week.start).range(from, to),
-  );
-  const attendanceByStudent = groupBy([...history, ...attendance]);
+  const schedule = calendar.schedule;
+  const progressByStudent = groupBy(await loadRecordingProgress(supabase, calendar));
+  const attendanceByStudent = groupBy(attendance);
   const personalByStudent = groupBy(personal);
   const cardsByStudent = groupBy(cards);
 
@@ -145,6 +145,7 @@ export async function runWeeklyDigest(options: RunOptions = {}): Promise<RunSumm
       boardCards: cardsByStudent.get(student.id) ?? [],
       weekStart: week.start,
       todayIso,
+      ctx: streakContextFor(calendar, progressByStudent.get(student.id) ?? []),
     });
     const email = renderWeeklyDigest(digest, siteUrl());
     queue.push({ student, message: { to: student.email!.trim(), ...email } });
@@ -213,11 +214,6 @@ async function finish(
   return summary;
 }
 
-function subtractDays(iso: string, days: number): string {
-  const d = new Date(`${iso}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() - days);
-  return d.toISOString().slice(0, 10);
-}
 
 // ---------- "send me a test email" ----------
 
@@ -243,14 +239,16 @@ export async function sendPreview(studentId: number, kind: "digest" | "reminder"
   let message: OutgoingEmail;
   if (kind === "digest") {
     const week = currentWeek(todayIso);
-    const [attendance, schedule, assigned, personal, cards] = await Promise.all([
-      supabase.from("attendance").select("*").eq("student_id", studentId).gte("class_date", subtractDays(week.start, 28)).then((r) => (r.data ?? []) as AttendanceRow[]),
-      supabase.from("class_schedule").select("*").then((r) => (r.data ?? []) as ClassScheduleRow[]),
+    const since = student.created_at.slice(0, 10);
+    const [attendance, calendar, assigned, personal, cards] = await Promise.all([
+      supabase.from("attendance").select("*").eq("student_id", studentId).gte("class_date", since).then((r) => (r.data ?? []) as AttendanceRow[]),
+      loadClassCalendar(supabase, since),
       supabase.from("tasks").select("*").then((r) => (r.data ?? []) as TaskRow[]),
       supabase.from("student_tasks").select("*").eq("student_id", studentId).then((r) => (r.data ?? []) as StudentTaskRow[]),
       supabase.from("board_cards").select("*").eq("student_id", studentId).then((r) => (r.data ?? []) as BoardCardRow[]),
     ]);
-    const digest = buildWeeklyDigest({ student, attendance, schedule, assignedTasks: assigned, personalTasks: personal, boardCards: cards, weekStart: week.start, todayIso });
+    const ctx = streakContextFor(calendar, await loadRecordingProgress(supabase, calendar, [studentId]));
+    const digest = buildWeeklyDigest({ student, attendance, schedule: calendar.schedule, assignedTasks: assigned, personalTasks: personal, boardCards: cards, weekStart: week.start, todayIso, ctx });
     message = { to: student.email, ...renderWeeklyDigest(digest, siteUrl()) };
   } else {
     const { data } = await supabase.from("student_tasks").select("*").eq("student_id", studentId).eq("completed", false).not("planned_date", "is", null);

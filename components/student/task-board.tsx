@@ -134,7 +134,7 @@ export function TaskBoard({
   return (
     <div>
       {(loadError || error) && (
-        <p className="mb-6 rounded-[3px] border border-red-600/30 bg-red-600/10 px-4 py-3 text-sm text-red-600">
+        <p className="mb-6 rounded-[14px] border border-red-600/30 bg-red-600/10 px-4 py-3 text-sm text-red-600">
           {error ?? `Couldn't load your board: ${loadError}`}
         </p>
       )}
@@ -240,7 +240,7 @@ export function TaskBoard({
                       <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         <span
                           className={`rounded-full px-2 py-0.5 text-[10px] font-bold tracking-[0.04em] uppercase ${
-                            r.source === "personal" ? "bg-primary/12 text-primary" : "bg-gold/30 text-[#8a6b12]"
+                            r.source === "personal" ? "bg-primary/12 text-primary" : "bg-gold/30 text-gold-ink"
                           }`}
                         >
                           {r.source === "personal" ? "Mine" : "Teacher"}

@@ -23,7 +23,8 @@ export async function POST(request: Request) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("class_schedule")
-    .insert({ ...validated.value, published_at: new Date().toISOString() })
+    // A new class only counts towards streaks from today, so past weeks never gain a "missed" class.
+    .insert({ ...validated.value, active_from: new Date().toISOString().slice(0, 10), published_at: new Date().toISOString() })
     .select("*")
     .single();
 

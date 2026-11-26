@@ -66,7 +66,7 @@ export default async function StudentCoursePage({
       {course.instructor && <p className="mb-6 font-mono text-[11px] text-muted">{course.instructor}</p>}
 
       {lessons.length === 0 ? (
-        <p className="rounded-[3px] border border-border bg-surface px-6 py-8 text-[14px] text-text">
+        <p className="rounded-[14px] border border-border bg-surface px-6 py-8 text-[14px] text-text">
           This course has no lessons yet.
         </p>
       ) : (

@@ -233,7 +233,7 @@ export function EmailReminders({ initialEmail, initialDigest, initialReminder, i
               );
             })}
           </div>
-          {reminder && days.length === 0 && <p className="mt-2 text-[12.5px] text-[#8a6b12]">Choose at least one day, or no reminder will be sent.</p>}
+          {reminder && days.length === 0 && <p className="mt-2 text-[12.5px] text-gold-ink">Choose at least one day, or no reminder will be sent.</p>}
         </fieldset>
         <div className="mt-4">
           <Button variant="outline" onClick={() => sendTest("reminder")} disabled={!hasEmail || busy === "test-reminder"} className="h-10 text-[13px] disabled:opacity-40">

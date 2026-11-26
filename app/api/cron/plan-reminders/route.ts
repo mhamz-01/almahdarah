@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runPlanReminders } from "@/lib/email/run";
+import { runCatchUpReminders } from "@/lib/recordings";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -20,7 +21,16 @@ export async function GET(request: Request) {
       dryRun: params.get("dry") === "1",
       onlyStudentId: Number.isInteger(student) && student > 0 ? student : undefined,
     });
-    return NextResponse.json(summary, { status: summary.ok ? 200 : 500 });
+    // Also: "2 days left to catch up" for students with an unfinished recording (skipped on dry runs).
+    let catchUp: Awaited<ReturnType<typeof runCatchUpReminders>> | { error: string } | null = null;
+    if (params.get("dry") !== "1") {
+      try {
+        catchUp = await runCatchUpReminders();
+      } catch (err) {
+        catchUp = { error: err instanceof Error ? err.message : "Catch-up reminders failed" };
+      }
+    }
+    return NextResponse.json({ ...summary, catchUp }, { status: summary.ok ? 200 : 500 });
   } catch (err) {
     return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Run failed" }, { status: 500 });
   }

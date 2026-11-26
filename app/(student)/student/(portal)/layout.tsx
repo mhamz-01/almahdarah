@@ -1,4 +1,6 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { SIDEBAR_COOKIE } from "@/lib/student-sidebar";
 import { getStudentSession } from "@/lib/get-student-session";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { StudentPortalShell } from "@/components/student/student-portal-shell";
@@ -31,8 +33,6 @@ export default async function StudentPortalLayout({ children }: { children: Reac
 
   return (
     <>
-      {/* Marker: globals.css switches every portal font to Poppins while this is on the page. */}
-      <span className="student-poppins hidden" aria-hidden />
       <StudentPortalShell
         student={{
           name: student.name,
@@ -51,6 +51,7 @@ export default async function StudentPortalLayout({ children }: { children: Reac
           initialDays: prefs?.reminder_days ?? [1, 2, 3, 4, 5],
         }}
         unreadCount={unreadRes.count ?? 0}
+        initialCollapsed={(await cookies()).get(SIDEBAR_COOKIE)?.value === "collapsed"}
       >
         {children}
       </StudentPortalShell>

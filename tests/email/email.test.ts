@@ -4,6 +4,7 @@ import { isoWeekday, pakistanDateOf, pakistanToday, previousWeek } from "@/lib/e
 import { buildPlanReminder, buildWeeklyDigest, reminderHasContent } from "@/lib/email/digest";
 import { validateEmailPrefs } from "@/lib/email/prefs";
 import { esc, renderPlanReminder, renderWeeklyDigest } from "@/lib/email/templates";
+import { EMPTY_STREAK_CONTEXT } from "@/lib/students";
 import type { AttendanceRow, BoardCardRow, ClassScheduleRow, StudentRow, StudentTaskRow, TaskRow } from "@/lib/types";
 
 const SITE = "https://example.test";
@@ -21,7 +22,7 @@ const student: StudentRow = {
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const;
 const schedule: ClassScheduleRow[] = DAYS.map((day, i) => ({
   id: i + 1, day, subject: `Subject ${day}`, start_time: "5:00 PM", duration: "1h", teacher: "T", color: "#000",
-  status: "scheduled", note: "", sort_order: i, updated_at: "", published_at: null,
+  status: "scheduled", note: "", sort_order: i, updated_at: "", published_at: null, active_from: "2000-01-01", course_id: null,
 }));
 
 function present(date: string): AttendanceRow {
@@ -63,20 +64,20 @@ describe("buildWeeklyDigest", () => {
     todayIso: "2026-10-19",
   };
 
-  it("counts attended and missed classes for the finished week", () => {
+  it("counts attended classes and shows last week's misses as catch-ups (still within 7 days)", () => {
     const d = buildWeeklyDigest({ ...base, attendance: [present("2026-10-12"), present("2026-10-13")], personalTasks: [] });
     assert.equal(d.classes.held, 5);
     assert.equal(d.classes.attended, 2);
-    assert.equal(d.classes.missed, 3);
-    assert.deepEqual(d.classes.days.map((x) => x.status), ["present", "present", "absent", "absent", "absent"]);
+    assert.equal(d.classes.missed, 0);
+    assert.deepEqual(d.classes.days.map((x) => x.status), ["present", "present", "catch_up", "catch_up", "catch_up"]);
     assert.equal(d.inProgress, false);
     assert.equal(d.firstName, "Aisha");
     assert.equal(d.weekLabel, "12 – 18 Oct");
   });
 
   it("treats a cancelled class as neither held nor missed", () => {
-    const cancelled = schedule.map((s) => (s.day === "Friday" ? { ...s, status: "cancelled" as const } : s));
-    const d = buildWeeklyDigest({ ...base, schedule: cancelled, attendance: DAYS.slice(0, 4).map((_, i) => present(`2026-10-${12 + i}`)), personalTasks: [] });
+    const ctx = { ...EMPTY_STREAK_CONTEXT, schedule, cancelledDates: new Set(["2026-10-16"]) };
+    const d = buildWeeklyDigest({ ...base, ctx, attendance: DAYS.slice(0, 4).map((_, i) => present(`2026-10-${12 + i}`)), personalTasks: [] });
     assert.equal(d.classes.held, 4);
     assert.equal(d.classes.attended, 4);
     assert.equal(d.classes.missed, 0);
@@ -124,9 +125,9 @@ describe("buildWeeklyDigest", () => {
     const d = buildWeeklyDigest({ ...base, attendance: [present("2026-10-19")], personalTasks: [], weekStart: "2026-10-19", todayIso: "2026-10-21" });
     assert.equal(d.inProgress, true);
     assert.equal(d.classes.days[0].status, "present");
-    assert.equal(d.classes.days[1].status, "absent"); // Tuesday has passed without a punch
+    assert.equal(d.classes.days[1].status, "catch_up"); // Tuesday passed without a punch: still time to catch up
     assert.equal(d.classes.days[3].status, "upcoming");
-    assert.equal(d.classes.missed, 1);
+    assert.equal(d.classes.missed, 0);
   });
 });
 

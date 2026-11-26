@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { AddStudentModal } from "@/components/admin/students/add-student-modal";
 import { EditStudentModal } from "@/components/admin/students/edit-student-modal";
 import { computeStudentStats } from "@/lib/students";
-import type { StudentRow, StudentWithLoginStatus } from "@/lib/types";
+import type { DayStatus, StudentRow, StudentWithLoginStatus } from "@/lib/types";
 
 interface StudentsAdminPanelProps {
   students: StudentWithLoginStatus[];
@@ -31,9 +31,47 @@ function initialsFor(name: string) {
 
 function matchesFilter(student: StudentWithLoginStatus, filter: Filter) {
   if (filter === "strong") return student.streak >= 3;
-  if (filter === "risk") return student.missedTotal >= 3;
+  if (filter === "risk") return student.missedTotal >= 3 || student.atRisk;
   return true;
 }
+
+/** Short status of the student's catch-up on a missed class, for the table. */
+function catchUpLabel(student: StudentWithLoginStatus): { text: string; className: string } {
+  const open = student.catchUps.find((c) => c.state !== "done");
+  if (open) {
+    const day = open.day.slice(0, 3);
+    if (open.state === "waiting") return { text: `${day} · waiting for recording`, className: "text-[#8a6b12]" };
+    const pct = open.durationSeconds ? Math.min(99, Math.round((open.watchedSeconds / open.durationSeconds) * 100)) : null;
+    return {
+      text: open.watchedSeconds > 0 ? `${day} · ${pct !== null ? `${pct}% watched` : "watching"}` : `${day} · not started`,
+      className: "text-[#8a6b12]",
+    };
+  }
+  if (student.catchUps.some((c) => c.state === "done")) return { text: "✓ Caught up", className: "text-green" };
+  return { text: "—", className: "text-muted" };
+}
+
+const CELL_CLASS: Record<DayStatus, string> = {
+  present: "border-green bg-green",
+  caught_up: "border-gold bg-gold",
+  catch_up: "border-dashed border-[#8a6b12] bg-transparent",
+  absent: "border-red-600 bg-transparent",
+  cancelled: "border-border bg-surface-2",
+  no_class: "border-transparent bg-transparent",
+  upcoming: "border-border bg-transparent",
+  before_join: "border-transparent bg-transparent",
+};
+
+const CELL_LABEL: Record<DayStatus, string> = {
+  present: "present",
+  caught_up: "caught up from the recording",
+  catch_up: "missed, catching up",
+  absent: "missed",
+  cancelled: "cancelled",
+  no_class: "no class",
+  upcoming: "not held yet",
+  before_join: "before joining",
+};
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
@@ -62,7 +100,7 @@ export function StudentsAdminPanel({ students: initialStudents, loadError }: Stu
 
   const filtered = useMemo(() => students.filter((s) => matchesFilter(s, filter)), [students, filter]);
   const selected = students.find((s) => s.id === selectedId) ?? students[0] ?? null;
-  const atRisk = students.filter((s) => s.missedTotal >= 3).length;
+  const atRisk = students.filter((s) => s.missedTotal >= 3 || s.atRisk).length;
 
   function selectStudent(id: number) {
     setSelectedId(id);
@@ -257,12 +295,13 @@ Password: ${selected.password}`);
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_340px] lg:items-start">
         <div className="overflow-x-auto rounded-[16px] border border-border bg-surface">
-          <table className="w-full min-w-[560px] text-left text-[13.5px]">
+          <table className="w-full min-w-[720px] text-left text-[13.5px]">
             <thead>
               <tr className="border-b border-border text-[11px] font-bold tracking-[0.06em] text-muted uppercase">
                 <th className="px-4 py-3">Student</th>
                 <th className="px-4 py-3">Streak</th>
                 <th className="px-4 py-3">This week</th>
+                <th className="px-4 py-3">Catch-up</th>
                 <th className="px-4 py-3">Last missed</th>
                 <th className="px-4 py-3">Login</th>
               </tr>
@@ -272,6 +311,7 @@ Password: ${selected.password}`);
                 const active = student.id === selected.id;
                 const streakColor = student.streak >= 3 ? "text-green" : student.streak === 0 ? "text-red-600" : "text-text";
                 const missedColor = student.missedTotal >= 3 ? "text-red-600" : "text-text";
+                const catchUp = catchUpLabel(student);
                 return (
                   <tr
                     key={student.id}
@@ -296,8 +336,12 @@ Password: ${selected.password}`);
                     </td>
                     <td className={`px-4 py-3.5 font-bold ${streakColor}`}>
                       {student.streak} {student.streak === 1 ? "week" : "weeks"}
+                      {student.atRisk && <span className="ml-1.5 text-[11px] font-bold text-[#8a6b12]">at risk</span>}
                     </td>
-                    <td className="px-4 py-3.5 text-text">{student.attendedThisWeek} / 5</td>
+                    <td className="px-4 py-3.5 text-text">
+                      {student.targetThisWeek ? `${student.attendedThisWeek} / ${student.targetThisWeek}` : "—"}
+                    </td>
+                    <td className={`px-4 py-3.5 text-[12.5px] font-semibold ${catchUp.className}`}>{catchUp.text}</td>
                     <td className={`px-4 py-3.5 ${missedColor}`}>{student.lastMissed}</td>
                     <td className="px-4 py-3.5">
                       <span
@@ -313,7 +357,7 @@ Password: ${selected.password}`);
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-10 text-center text-muted">
+                  <td colSpan={6} className="px-4 py-10 text-center text-muted">
                     No students match yet.
                   </td>
                 </tr>
@@ -344,16 +388,19 @@ Password: ${selected.password}`);
             <div className="rounded-xl border border-border bg-bg p-3.5">
               <div className="text-[10.5px] font-bold tracking-[0.1em] text-muted uppercase">Streak</div>
               <div className="mt-1.5 font-display text-[22px] text-ink">{selected.streak}</div>
-              <div className="text-[11px] text-muted">weeks unbroken</div>
+              <div className="text-[11px] text-muted">weeks · best {selected.bestStreak}</div>
+            </div>
+            <div className="rounded-xl border border-border bg-bg p-3.5">
+              <div className="text-[10.5px] font-bold tracking-[0.1em] text-muted uppercase">Attendance</div>
+              <div className="mt-1.5 font-display text-[22px] text-ink">{selected.attendanceRate === null ? "—" : `${selected.attendanceRate}%`}</div>
+              <div className="text-[11px] text-muted">{selected.perfectWeeks} perfect {selected.perfectWeeks === 1 ? "week" : "weeks"}</div>
             </div>
             <div className="rounded-xl border border-border bg-bg p-3.5">
               <div className="text-[10.5px] font-bold tracking-[0.1em] text-muted uppercase">Missed</div>
               <div className={`mt-1.5 font-display text-[22px] ${selected.missedTotal >= 3 ? "text-red-600" : "text-ink"}`}>
                 {selected.missedTotal}
               </div>
-              <div className="text-[11px] text-muted">
-                classes, {selected.weeks.length <= 1 ? "since joining" : `${selected.weeks.length - 1} week${selected.weeks.length - 1 === 1 ? "" : "s"}`}
-              </div>
+              <div className="text-[11px] text-muted">classes since joining</div>
             </div>
           </div>
 
@@ -367,14 +414,8 @@ Password: ${selected.password}`);
                     {week.cells.map((cell) => (
                       <span
                         key={cell.day}
-                        title={`${cell.day} — ${cell.status === "present" ? "present" : cell.status === "absent" ? "missed" : "not held"}`}
-                        className={`h-4 flex-1 rounded-[3px] border ${
-                          cell.status === "present"
-                            ? "border-green bg-green"
-                            : cell.status === "absent"
-                              ? "border-red-600 bg-transparent"
-                              : "border-border bg-transparent"
-                        }`}
+                        title={`${cell.day} ${cell.date}: ${CELL_LABEL[cell.status]}`}
+                        className={`h-4 flex-1 rounded-[3px] border ${CELL_CLASS[cell.status]}`}
                       />
                     ))}
                   </span>
@@ -382,9 +423,10 @@ Password: ${selected.password}`);
               ))}
             </div>
             <div className="mt-3 flex gap-3.5 font-mono text-[10.5px] text-muted">
-              <span>■ present</span>
-              <span>□ missed</span>
-              <span>· not held</span>
+              <span className="text-green">■ present</span>
+              <span className="text-[#8a6b12]">■ caught up</span>
+              <span className="text-red-600">□ missed</span>
+              <span>▪ cancelled</span>
             </div>
           </div>
 
