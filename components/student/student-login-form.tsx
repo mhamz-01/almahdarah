@@ -8,7 +8,7 @@ import { LogoLoader } from "@/components/ui/logo-loader";
 const OPEN_PORTAL_FALLBACK_MS = 15000;
 
 const inputClasses =
-  "h-[50px] w-full rounded-[14px] border border-border-strong bg-surface px-4 text-[15px] text-ink transition-colors focus:border-primary focus:outline-none";
+  "h-[52px] w-full rounded-[14px] border border-border-strong bg-surface px-4 text-[15px] text-ink shadow-[var(--shadow-sm)] transition-[border-color,box-shadow] placeholder:text-muted/70 focus:border-primary focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_16%,transparent)] focus:outline-none";
 
 export function StudentLoginForm() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export function StudentLoginForm() {
     <form onSubmit={handleSubmit}>
       {isOpeningPortal && (
         <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center gap-5 bg-bg px-6 text-center">
-          <div className="bg-pattern pointer-events-none absolute inset-0 opacity-40" />
+          <div className="ds-lattice pointer-events-none absolute inset-0 [mask-image:radial-gradient(circle_at_center,#000_0%,transparent_62%)]" />
           <LogoLoader className="relative" label="" />
           <div className="relative" role="status" aria-live="polite">
             <p className="text-[17px] font-bold text-ink">Signing you in…</p>
@@ -69,7 +69,7 @@ export function StudentLoginForm() {
         </div>
       )}
       <label className="mb-[18px] block">
-        <span className="mb-2 block text-[12px] font-bold tracking-[0.1em] text-muted uppercase">Username</span>
+        <span className="mb-2 block text-[13px] font-semibold text-ink">Username</span>
         <input
           value={username}
           // Usernames are always lowercase; phones like to capitalise the first letter.
@@ -85,7 +85,7 @@ export function StudentLoginForm() {
       </label>
 
       <label className="mb-3 block">
-        <span className="mb-2 block text-[12px] font-bold tracking-[0.1em] text-muted uppercase">Password</span>
+        <span className="mb-2 block text-[13px] font-semibold text-ink">Password</span>
         <span className="relative block">
           <input
             value={password}
@@ -102,7 +102,7 @@ export function StudentLoginForm() {
             type="button"
             onClick={() => setShowPassword((s) => !s)}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute top-1/2 right-3 -translate-y-1/2 text-[12px] font-bold text-primary"
+            className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-primary transition-colors hover:bg-primary-soft"
           >
             {showPassword ? "Hide" : "Show"}
           </button>
@@ -119,7 +119,7 @@ export function StudentLoginForm() {
           />
           Keep me signed in
         </label>
-        <Link href="/student/forgot-password" className="text-[13px] font-bold text-primary">
+        <Link href="/student/forgot-password" className="text-[13px] font-semibold text-primary hover:underline">
           Forgot password?
         </Link>
       </div>
@@ -128,14 +128,23 @@ export function StudentLoginForm() {
         type="submit"
         disabled={!username || !password || busy}
         aria-busy={busy}
-        className={`flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full text-[15px] font-bold text-white shadow-[var(--shadow-sm)] transition-colors ${
-          username && password && !busy ? "cursor-pointer bg-primary hover:brightness-[1.08]" : "cursor-not-allowed bg-primary/60"
+        className={`group flex h-[54px] w-full items-center justify-center gap-2.5 rounded-full text-[15px] font-semibold text-white transition-[filter,box-shadow,background-color] ${
+          username && password && !busy
+            ? "cursor-pointer bg-primary shadow-[0_10px_24px_-10px_var(--primary)] hover:brightness-[1.08]"
+            : busy
+              ? "cursor-wait bg-primary"
+              : "cursor-not-allowed bg-primary/55"
         }`}
       >
         {busy && <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />}
-        {isOpeningPortal ? "Opening portal…" : isSubmitting ? "Checking your details…" : "Sign in to portal"}
+        {isOpeningPortal ? "Opening portal…" : isSubmitting ? "Checking your details…" : "Sign in"}
+        {!busy && <span aria-hidden className="transition-transform group-hover:translate-x-1">→</span>}
       </button>
-      {error && <p className="mt-3 text-center text-[13.5px] font-semibold text-red-600">{error}</p>}
+      {error && (
+        <p role="alert" className="mt-3.5 rounded-[12px] border border-red-600/25 bg-red-600/[0.06] px-3.5 py-2.5 text-center text-[13.5px] font-medium text-red-600">
+          {error}
+        </p>
+      )}
     </form>
   );
 }
