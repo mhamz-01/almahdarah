@@ -8,7 +8,7 @@ import { LogoLoader } from "@/components/ui/logo-loader";
 const OPEN_PORTAL_FALLBACK_MS = 15000;
 
 const inputClasses =
-  "h-[52px] w-full rounded-[14px] border border-border-strong bg-surface px-4 text-[15px] text-ink shadow-[var(--shadow-sm)] transition-[border-color,box-shadow] placeholder:text-muted/70 focus:border-primary focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_16%,transparent)] focus:outline-none";
+  "h-12 w-full rounded-[14px] border border-border-strong bg-surface px-4 text-[15px] text-ink shadow-[var(--shadow-sm)] transition-[border-color,box-shadow] placeholder:text-muted/70 focus:border-primary focus:shadow-[0_0_0_4px_color-mix(in_srgb,var(--primary)_16%,transparent)] focus:outline-none";
 
 export function StudentLoginForm() {
   const router = useRouter();
@@ -68,8 +68,8 @@ export function StudentLoginForm() {
           </div>
         </div>
       )}
-      <label className="mb-[18px] block">
-        <span className="mb-2 block text-[13px] font-semibold text-ink">Username</span>
+      <label className="mb-4 block">
+        <span className="mb-1.5 block text-[13px] font-semibold text-ink">Username</span>
         <input
           value={username}
           // Usernames are always lowercase; phones like to capitalise the first letter.
@@ -85,7 +85,7 @@ export function StudentLoginForm() {
       </label>
 
       <label className="mb-3 block">
-        <span className="mb-2 block text-[13px] font-semibold text-ink">Password</span>
+        <span className="mb-1.5 block text-[13px] font-semibold text-ink">Password</span>
         <span className="relative block">
           <input
             value={password}
@@ -109,7 +109,7 @@ export function StudentLoginForm() {
         </span>
       </label>
 
-      <div className="mb-[26px] flex items-center justify-between gap-3">
+      <div className="mb-5 flex items-center justify-between gap-3">
         <label className="flex cursor-pointer items-center gap-2 text-[13px] text-text">
           <input
             type="checkbox"
@@ -128,7 +128,7 @@ export function StudentLoginForm() {
         type="submit"
         disabled={!username || !password || busy}
         aria-busy={busy}
-        className={`group flex h-[54px] w-full items-center justify-center gap-2.5 rounded-full text-[15px] font-semibold text-white transition-[filter,box-shadow,background-color] ${
+        className={`group flex h-[50px] w-full items-center justify-center gap-2.5 rounded-full text-[15px] font-semibold text-white transition-[filter,box-shadow,background-color] ${
           username && password && !busy
             ? "cursor-pointer bg-primary shadow-[0_10px_24px_-10px_var(--primary)] hover:brightness-[1.08]"
             : busy
